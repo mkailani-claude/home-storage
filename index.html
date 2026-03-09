@@ -660,7 +660,9 @@ const readF=file=>new Promise((res,rej)=>{
 let sel={};
 
 async function renderResults(p,results){
+  // p is always short ID: bc / cam / srch
   const wrap=$(p+'-rw'),cfm=$(p+'-cfm');
+  if(!wrap||!cfm){console.error('renderResults: bad panel id',p);return;}
   sel[p]=null;
   wrap.innerHTML=`<span class="rcnt">${results.length} result${results.length!==1?'s':''} found</span>`;
   wrap.classList.add('on');
@@ -709,7 +711,9 @@ function makeQRow(lbl,getV,setV,min=1,max=999){
 }
 
 function renderDetail(p,prod){
+  // p is always short ID: bc / cam / srch
   const ct=$(p+'-det');
+  if(!ct){console.error('renderDetail: bad panel id',p);return;}
   dQ[p]=1;ddQ[p]=1;
   const ex=getBC(prod.barcode);
   ct.innerHTML='';ct.classList.add('on');
@@ -776,24 +780,24 @@ function chkKey(){
 }
 
 async function runSearch(p,mode,extra){
+  // p is always short ID: bc / cam / srch
   if(!chkKey())return;
   resetPanel(p);
-  const lp={barcode:'bc',camera:'cam',search:'srch'}[p]||p;
-  setLoad(lp,true,'Identifying product…');
+  setLoad(p,true,'Identifying product…');
   try{
     let results;
-    if(mode==='pbc'){setLoad(lp,true,'Reading barcode from photo…');results=await lookupPhoto(extra.b64,extra.mime,true);}
-    else if(mode==='photo'){setLoad(lp,true,'Analyzing photo…');results=await lookupPhoto(extra.b64,extra.mime,false);}
+    if(mode==='pbc'){setLoad(p,true,'Reading barcode from photo…');results=await lookupPhoto(extra.b64,extra.mime,true);}
+    else if(mode==='photo'){setLoad(p,true,'Analyzing photo…');results=await lookupPhoto(extra.b64,extra.mime,false);}
     else{
-      if(!extra?.trim()){setLoad(lp,false);toast('Enter a value first');return;}
-      setLoad(lp,true,mode==='bc'?'Looking up barcode…':'Searching products…');
+      if(!extra||!extra.trim()){setLoad(p,false);toast('Enter a value first');return;}
+      setLoad(p,true,mode==='bc'?'Looking up barcode…':'Searching products…');
       results=await lookupText(extra,mode==='bc');
     }
-    setLoad(lp,false);
+    setLoad(p,false);
     if(!results?.length){toast('No results found');return;}
     await renderResults(p,results);
   }catch(e){
-    setLoad(lp,false);
+    setLoad(p,false);
     if(e.message==='NO_KEY'){toast('No API key','err');openS();}
     else toast('Error: '+e.message,'err');
   }
@@ -939,14 +943,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   let bcT;
   $('bc-inp').addEventListener('input',e=>{
     clearTimeout(bcT);const v=e.target.value.trim();
-    if(v.length>=8)bcT=setTimeout(()=>runSearch('barcode','bc',v),900);
+    if(v.length>=8)bcT=setTimeout(()=>runSearch('bc','bc',v),900);
   });
   $('bc-btn').addEventListener('click',()=>{
     const ph=photos.barcode;
-    if(ph)runSearch('barcode','pbc',ph);
-    else runSearch('barcode','bc',$('bc-inp').value.trim());
+    if(ph)runSearch('bc','pbc',ph);
+    else runSearch('bc','bc',$('bc-inp').value.trim());
   });
-  $('bc-cfm').addEventListener('click',()=>{const r=sel.barcode;if(r){renderDetail('barcode',r);$('bc-cfm').style.display='none';}});
+  $('bc-cfm').addEventListener('click',()=>{const r=sel['bc'];if(r){renderDetail('bc',r);$('bc-cfm').style.display='none';}});
 
   // Camera
   async function handleCam(file){
@@ -967,13 +971,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(img)img.remove();box.querySelector('.pph').style.display='block';
     $('cam-pc').style.display='none';$('cam-btn').disabled=true;
   });
-  $('cam-btn').addEventListener('click',()=>{const ph=photos.camera;if(!ph){toast('No photo loaded');return;}runSearch('camera','photo',ph);});
-  $('cam-cfm').addEventListener('click',()=>{const r=sel.camera;if(r){renderDetail('camera',r);$('cam-cfm').style.display='none';}});
+  $('cam-btn').addEventListener('click',()=>{const ph=photos.camera;if(!ph){toast('No photo loaded');return;}runSearch('cam','photo',ph);});
+  $('cam-cfm').addEventListener('click',()=>{const r=sel['cam'];if(r){renderDetail('cam',r);$('cam-cfm').style.display='none';}});
 
   // Search
-  $('srch-btn').addEventListener('click',()=>runSearch('search','text',$('srch-inp').value.trim()));
+  $('srch-btn').addEventListener('click',()=>runSearch('srch','text',$('srch-inp').value.trim()));
   $('srch-inp').addEventListener('keydown',e=>{if(e.key==='Enter')$('srch-btn').click();});
-  $('srch-cfm').addEventListener('click',()=>{const r=sel.search;if(r){renderDetail('search',r);$('srch-cfm').style.display='none';}});
+  $('srch-cfm').addEventListener('click',()=>{const r=sel['srch'];if(r){renderDetail('srch',r);$('srch-cfm').style.display='none';}});
 
   // Inventory filters
   $('inv-q').addEventListener('input',e=>{invQ=e.target.value.trim();renderInv();});
