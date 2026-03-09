@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEIMLAGER — Home Storage System</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --surface: #16181c;
+    --surface2: #1e2026;
+    --border: #2a2d35;
+    --accent: #f0c060;
+    --accent2: #3b82f6;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+    --font-body: 'DM Sans', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* GRID BACKGROUND */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(240,192,96,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240,192,96,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(14,15,17,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 60px;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--accent);
+  }
+  .logo span { color: var(--muted); font-size: 12px; font-family: var(--font-mono); letter-spacing: 2px; display: block; margin-top: -6px; }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .header-stats {
+    display: flex;
+    gap: 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .header-stats strong { color: var(--accent); font-size: 16px; display: block; }
+
+  .settings-btn {
+    width: 36px; height: 36px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all .2s;
+    position: relative;
+  }
+  .settings-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .settings-btn.no-key { border-color: rgba(239,68,68,0.5); color: var(--danger); }
+  .settings-btn.no-key::after {
+    content: '';
+    position: absolute;
+    top: -3px; right: -3px;
+    width: 8px; height: 8px;
+    background: var(--danger);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  /* MAIN LAYOUT */
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* PANELS */
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    background: var(--surface2);
+  }
+  .panel-header .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* LEFT PANEL - SCANNER */
+  .scanner-panel { align-self: start; position: sticky; top: 84px; }
+
+  .mode-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 1px solid var(--border);
+  }
+  .mode-tab {
+    padding: 12px;
+    text-align: center;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border: none;
+    background: none;
+    transition: all .2s;
+    text-transform: uppercase;
+    border-bottom: 2px solid transparent;
+  }
+  .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(240,192,96,0.05); }
+  .mode-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+
+  .scanner-body { padding: 20px; }
+
+  /* SCAN INPUT */
+  .scan-input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .scan-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent);
+    font-size: 18px;
+  }
+  .scan-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 14px 14px 46px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    letter-spacing: 2px;
+    transition: border-color .2s;
+    outline: none;
+  }
+  .scan-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,192,96,0.1); }
+  .scan-input::placeholder { color: var(--muted); letter-spacing: 1px; font-size: 12px; }
+
+  /* PHOTO UPLOAD */
+  .photo-drop {
+    border: 2px dashed var(--border);
+    border-radius: 3px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-drop:hover { border-color: var(--accent); background: rgba(240,192,96,0.03); }
+  .photo-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .photo-drop-icon { font-size: 32px; margin-bottom: 8px; }
+  .photo-drop p { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
+  .photo-drop strong { color: var(--text); display: block; margin-bottom: 4px; font-size: 14px; font-family: var(--font-body); }
+
+  #photoPreview {
+    width: 100%;
+    border-radius: 3px;
+    margin-bottom: 12px;
+    display: none;
+    max-height: 160px;
+    object-fit: contain;
+    border: 1px solid var(--border);
+  }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-primary { background: var(--accent); color: #000; font-weight: 700; }
+  .btn-primary:hover { background: #f5d080; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(240,192,96,0.3); }
+  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); margin-top: 8px; }
+  .btn-danger:hover { background: rgba(239,68,68,0.1); }
+
+  /* RESULT CARD */
+  #resultCard {
+    display: none;
+    margin-top: 20px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+    animation: slideIn .3s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+  .result-img-wrap {
+    width: 100%;
+    height: 160px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .result-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .result-source {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.7);
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .result-name {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .result-barcode {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .result-details {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 14px;
+    background: var(--bg);
+    padding: 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+  }
+
+  /* QTY INPUT */
+  .qty-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .qty-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
+  .qty-controls { display: flex; align-items: center; gap: 6px; flex: 1; }
+  .qty-btn {
+    width: 34px; height: 34px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .qty-input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 16px;
+    text-align: center;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .qty-input:focus { border-color: var(--accent); }
+
+  /* DEDUCT MODE */
+  .deduct-mode {
+    background: rgba(239,68,68,0.05);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 3px;
+    padding: 12px;
+    margin-bottom: 12px;
+    display: none;
+  }
+  .deduct-mode.visible { display: block; }
+  .deduct-label { font-family: var(--font-mono); font-size: 10px; color: var(--danger); letter-spacing: 2px; margin-bottom: 8px; }
+  .deduct-info { font-size: 13px; color: var(--text); margin-bottom: 10px; }
+  .deduct-info strong { color: var(--danger); }
+
+  /* LOADING */
+  .loading {
+    display: none;
+    padding: 30px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+  .loading-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+  .loading-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    background: var(--accent);
+    width: 40%;
+    animation: loading 1.2s ease-in-out infinite;
+  }
+  @keyframes loading { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
+
+  /* RIGHT PANEL - INVENTORY */
+  .inventory-panel { display: flex; flex-direction: column; }
+
+  .inventory-toolbar {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface2);
+  }
+  .search-box {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--muted); }
+
+  .filter-btn {
+    padding: 8px 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    letter-spacing: 1px;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(240,192,96,0.05); }
+
+  /* INVENTORY GRID */
+  .inventory-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .empty-state {
+    grid-column: 1/-1;
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
+  .empty-state h3 { font-family: var(--font-display); font-size: 24px; letter-spacing: 3px; color: var(--border); margin-bottom: 8px; }
+  .empty-state p { font-size: 13px; font-family: var(--font-mono); }
+
+  /* ITEM CARD */
+  .item-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all .2s;
+    cursor: pointer;
+    position: relative;
+    animation: cardIn .3s ease;
+  }
+  @keyframes cardIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+  .item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+  .item-card.low-stock { border-color: rgba(239,68,68,0.4); }
+  .item-card.low-stock::before {
+    content: 'LOW';
+    position: absolute;
+    top: 8px; left: 8px;
+    background: var(--danger);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    z-index: 2;
+  }
+
+  .card-img {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    background: var(--bg);
+    display: block;
+  }
+  .card-img-placeholder {
+    width: 100%;
+    height: 120px;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    color: var(--border);
+  }
+
+  .card-body { padding: 10px; }
+  .card-name {
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-barcode {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .card-qty {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .card-qty-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); }
+  .card-actions { display: flex; gap: 4px; }
+  .card-action-btn {
+    width: 28px; height: 28px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .card-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .card-action-btn.del:hover { border-color: var(--danger); color: var(--danger); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalIn .2s ease;
+  }
+  @keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    background: var(--surface2);
+  }
+  .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; transition: color .15s; }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { padding: 20px; }
+  .modal-img {
+    width: 100%;
+    height: 200px;
+    object-fit: contain;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 16px;
+  }
+  .modal-name { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .modal-barcode { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; margin-bottom: 12px; }
+  .modal-details { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
+  .modal-qty-section { border-top: 1px solid var(--border); padding-top: 16px; }
+  .modal-qty-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; }
+
+  /* SETTINGS MODAL */
+  .settings-modal {
+    width: 90%;
+    max-width: 520px;
+  }
+  .settings-section {
+    margin-bottom: 24px;
+  }
+  .settings-section-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .settings-field {
+    margin-bottom: 14px;
+  }
+  .settings-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .settings-label a {
+    color: var(--accent2);
+    text-decoration: none;
+    font-size: 10px;
+  }
+  .settings-label a:hover { text-decoration: underline; }
+  .settings-input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 11px 14px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 1px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .settings-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,192,96,0.1); }
+  .settings-input::placeholder { color: var(--muted); font-size: 11px; }
+
+  .api-key-wrap {
+    position: relative;
+  }
+  .api-key-wrap .settings-input { padding-right: 46px; }
+  .api-key-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+    transition: color .15s;
+  }
+  .api-key-toggle:hover { color: var(--text); }
+
+  .api-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+  .api-status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+  .api-status-dot.valid { background: var(--success); box-shadow: 0 0 6px var(--success); }
+  .api-status-dot.invalid { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
+  .api-status-dot.checking { background: var(--accent); animation: pulse 1s infinite; }
+
+  .settings-hint {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    background: rgba(240,192,96,0.04);
+    border: 1px solid rgba(240,192,96,0.15);
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin-top: 8px;
+  }
+  .settings-hint strong { color: var(--accent); }
+
+  .settings-model-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .model-option {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all .15s;
+    background: var(--bg);
+  }
+  .model-option:hover { border-color: var(--accent); }
+  .model-option.selected { border-color: var(--accent); background: rgba(240,192,96,0.06); }
+  .model-option input[type=radio] { display: none; }
+  .model-name { font-family: var(--font-mono); font-size: 11px; color: var(--text); margin-bottom: 2px; }
+  .model-desc { font-size: 11px; color: var(--muted); }
+
+  .settings-footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .btn-sm {
+    padding: 10px 20px;
+    font-size: 11px;
+  }
+
+  .danger-zone {
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 3px;
+    padding: 14px;
+    background: rgba(239,68,68,0.03);
+  }
+  .danger-zone-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--danger);
+    margin-bottom: 10px;
+  }
+  .danger-zone p { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+
+  /* API KEY BANNER */
+  .api-banner {
+    display: none;
+    background: rgba(239,68,68,0.08);
+    border-bottom: 1px solid rgba(239,68,68,0.3);
+    padding: 10px 24px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--danger);
+    letter-spacing: 1px;
+    text-align: center;
+    cursor: pointer;
+    transition: background .2s;
+    position: relative;
+    z-index: 99;
+  }
+  .api-banner:hover { background: rgba(239,68,68,0.14); }
+  .api-banner strong { color: #fff; }
+  .api-banner span { text-decoration: underline; margin-left: 6px; }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 18px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    z-index: 300;
+    display: none;
+    animation: toastIn .2s ease;
+    max-width: 300px;
+  }
+  @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .toast.success { border-color: var(--success); color: var(--success); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+  .toast.info { border-color: var(--accent); color: var(--accent); }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    .scanner-panel { position: static; }
+    .inventory-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .header-stats { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="api-banner" id="apiBanner" onclick="openSettings()">
+  ⚠ No API key configured — AI lookup is disabled. <strong><span>Click to add your Anthropic API key →</span></strong>
+</div>
+
+<header>
+  <div class="logo">
+    HEIMLAGER
+    <span>HOME STORAGE SYSTEM v1.0</span>
+  </div>
+  <div class="header-right">
+    <div class="header-stats">
+      <div>
+        <strong id="statItems">0</strong>
+        ITEMS
+      </div>
+      <div>
+        <strong id="statUnits">0</strong>
+        TOTAL UNITS
+      </div>
+      <div>
+        <strong id="statLow">0</strong>
+        LOW STOCK
+      </div>
+    </div>
+    <button class="settings-btn" id="settingsBtn" onclick="openSettings()" title="Settings">⚙</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- LEFT: SCANNER PANEL -->
+  <div class="panel scanner-panel">
+    <div class="panel-header">
+      <div class="dot"></div>
+      SCANNER / LOOKUP
+    </div>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('barcode')" id="tab-barcode">⬛ BARCODE</button>
+      <button class="mode-tab" onclick="switchMode('photo')" id="tab-photo">📷 PHOTO</button>
+    </div>
+
+    <div class="scanner-body">
+
+      <!-- BARCODE MODE -->
+      <div id="barcodeMode">
+        <div class="scan-input-wrap">
+          <span class="scan-icon">▥</span>
+          <input type="text" class="scan-input" id="barcodeInput"
+            placeholder="SCAN OR TYPE BARCODE..."
+            maxlength="30"
+            oninput="onBarcodeInput(this.value)"
+            onkeydown="if(event.key==='Enter') lookupBarcode()">
+        </div>
+        <button class="btn btn-primary" onclick="lookupBarcode()" id="lookupBtn">
+          ⬛ LOOKUP PRODUCT
+        </button>
+        <button class="btn btn-secondary" onclick="switchToDeductMode()" id="deductBtn" style="display:none">
+          — CONSUME / DEDUCT
+        </button>
+      </div>
+
+      <!-- PHOTO MODE -->
+      <div id="photoMode" style="display:none">
+        <div class="photo-drop" onclick="document.getElementById('photoFile').click()">
+          <input type="file" id="photoFile" accept="image/*" capture="environment" onchange="handlePhoto(this)">
+          <div class="photo-drop-icon">📷</div>
+          <strong>Drop photo or tap to capture</strong>
+          <p>JPEG / PNG · Barcode or product</p>
+        </div>
+        <img id="photoPreview" alt="Preview">
+        <button class="btn btn-primary" onclick="lookupByPhoto()" id="photoLookupBtn" disabled>
+          🔍 IDENTIFY PRODUCT
+        </button>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div class="loading" id="loadingState">
+        <div>SEARCHING DATABASE...</div>
+        <div class="loading-bar"></div>
+        <div id="loadingSource">QUERYING DM.DE / AMAZON.DE</div>
+      </div>
+
+      <!-- RESULT CARD -->
+      <div id="resultCard">
+        <div class="result-img-wrap">
+          <img id="resultImg" src="" alt="" style="display:none">
+          <div id="resultImgPlaceholder" style="font-size:48px;color:var(--border)">📦</div>
+          <span class="result-source" id="resultSource">—</span>
+        </div>
+        <div class="result-name" id="resultName"></div>
+        <div class="result-barcode" id="resultBarcode"></div>
+        <div class="result-details" id="resultDetails"></div>
+
+        <!-- DEDUCT MODE UI -->
+        <div class="deduct-mode" id="deductModeUI">
+          <div class="deduct-label">⬇ CONSUME MODE</div>
+          <div class="deduct-info" id="deductInfo"></div>
+          <div class="qty-row">
+            <span class="qty-label">DEDUCT QTY</span>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeDeductQty(-1)">−</button>
+              <input type="number" class="qty-input" id="deductQtyInput" value="1" min="1">
+              <button class="qty-btn" onclick="changeDeductQty(1)">+</button>
+            </div>
+          </div>
+          <button class="btn btn-danger" onclick="confirmDeduct()">— CONFIRM DEDUCTION</button>
+          <button class="btn btn-secondary" onclick="cancelDeduct()">✕ CANCEL</button>
+        </div>
+
+        <!-- ADD MODE UI -->
+        <div id="addModeUI">
+          <div class="qty-row">
+            <span class="qty-label">QUANTITY</span>
+            <div class="qty-controls">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input type="number" class="qty-input" id="qtyInput" value="1" min="1">
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="addToInventory()">＋ ADD TO STORAGE</button>
+          <button class="btn btn-secondary" onclick="clearResult()">✕ CANCEL</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: INVENTORY -->
+  <div class="panel inventory-panel">
+    <div class="panel-header">
+      <div class="dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
+      STORAGE INVENTORY
+    </div>
+    <div class="inventory-toolbar">
+      <input type="text" class="search-box" placeholder="Search by name or barcode..." oninput="filterInventory(this.value)" id="inventorySearch">
+      <button class="filter-btn" onclick="filterLow()" id="lowBtn">⚠ LOW STOCK</button>
+    </div>
+    <div class="inventory-grid" id="inventoryGrid">
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <h3>LAGER LEER</h3>
+        <p>Scan a barcode or take a photo<br>to add your first item</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      ITEM DETAIL
+      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <img class="modal-img" id="modalImg" src="" alt="">
+      <div class="modal-name" id="modalName"></div>
+      <div class="modal-barcode" id="modalBarcode"></div>
+      <div class="modal-details" id="modalDetails"></div>
+      <div class="modal-qty-section">
+        <div class="modal-qty-title">ADJUST QUANTITY</div>
+        <div class="qty-row">
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="modalChangeQty(-1)">−</button>
+            <input type="number" class="qty-input" id="modalQtyInput" value="1" min="0">
+            <button class="qty-btn" onclick="modalChangeQty(1)">+</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="updateModalQty()" style="margin-top:8px">✓ UPDATE QUANTITY</button>
+        <button class="btn btn-danger" onclick="deleteModalItem()" style="margin-top:8px">🗑 REMOVE FROM STORAGE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsOverlay" onclick="closeSettingsModal(event)">
+  <div class="modal settings-modal">
+    <div class="modal-header">
+      ⚙ SETTINGS
+      <button class="modal-close" onclick="closeSettingsDirect()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- API KEY SECTION -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔑 ANTHROPIC API KEY</div>
+        <div class="settings-field">
+          <div class="settings-label">
+            API KEY
+            <a href="https://console.anthropic.com/account/keys" target="_blank">Get key at console.anthropic.com →</a>
+          </div>
+          <div class="api-key-wrap">
+            <input type="password" class="settings-input" id="apiKeyInput"
+              placeholder="sk-ant-api03-..."
+              oninput="onApiKeyInput(this.value)">
+            <button class="api-key-toggle" onclick="toggleApiKeyVisibility()" id="apiKeyToggle" title="Show/hide key">👁</button>
+          </div>
+          <div class="api-status" id="apiStatus">
+            <div class="api-status-dot" id="apiStatusDot"></div>
+            <span id="apiStatusText">No key configured</span>
+          </div>
+          <div class="settings-hint">
+            Your API key is stored <strong>locally in your browser only</strong> and never sent anywhere except directly to Anthropic's API for product lookups. It is never logged or shared.
+          </div>
+        </div>
+      </div>
+
+      <!-- MODEL SECTION -->
+      <div class="settings-section">
+        <div class="settings-section-title">🤖 AI MODEL</div>
+        <div class="settings-model-grid" id="modelGrid">
+          <label class="model-option selected" onclick="selectModel('claude-sonnet-4-20250514', this)">
+            <input type="radio" name="model" value="claude-sonnet-4-20250514" checked>
+            <div class="model-name">Sonnet 4</div>
+            <div class="model-desc">Best balance of speed & accuracy</div>
+          </label>
+          <label class="model-option" onclick="selectModel('claude-opus-4-5', this)">
+            <input type="radio" name="model" value="claude-opus-4-5">
+            <div class="model-name">Opus 4.5</div>
+            <div class="model-desc">Most powerful, slower</div>
+          </label>
+          <label class="model-option" onclick="selectModel('claude-haiku-4-5-20251001', this)">
+            <input type="radio" name="model" value="claude-haiku-4-5-20251001">
+            <div class="model-name">Haiku 4.5</div>
+            <div class="model-desc">Fastest, lightweight</div>
+          </label>
+        </div>
+      </div>
+
+      <!-- LOOKUP PREFERENCES -->
+      <div class="settings-section">
+        <div class="settings-section-title">🔍 LOOKUP PREFERENCES</div>
+        <div class="settings-field">
+          <div class="settings-label">PREFERRED STORE</div>
+          <select class="settings-input" id="preferredStore">
+            <option value="both">dm.de + amazon.de (Auto)</option>
+            <option value="dm">dm.de only</option>
+            <option value="amazon">amazon.de only</option>
+          </select>
+        </div>
+        <div class="settings-field">
+          <div class="settings-label">LOW STOCK THRESHOLD</div>
+          <input type="number" class="settings-input" id="lowStockThreshold" value="2" min="1" max="20" style="width:120px">
+        </div>
+      </div>
+
+      <!-- DANGER ZONE -->
+      <div class="settings-section">
+        <div class="settings-section-title" style="color:var(--danger)">⚠ DANGER ZONE</div>
+        <div class="danger-zone">
+          <div class="danger-zone-title">CLEAR ALL DATA</div>
+          <p>This will permanently delete your entire inventory and all settings. This action cannot be undone.</p>
+          <button class="btn btn-danger btn-sm" onclick="clearAllData()" style="width:auto;padding:10px 20px">🗑 CLEAR ALL INVENTORY</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="settings-footer">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()" style="width:auto">✓ SAVE SETTINGS</button>
+      <button class="btn btn-secondary btn-sm" onclick="closeSettingsDirect()" style="width:auto">✕ CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────
+let inventory = JSON.parse(localStorage.getItem('heimlager_inventory') || '[]');
+let settings = JSON.parse(localStorage.getItem('heimlager_settings') || '{}');
+let currentResult = null;
+let currentMode = 'add'; // 'add' or 'deduct'
+let modalItemBarcode = null;
+let photoBase64 = null;
+let lowFilter = false;
+let selectedModel = settings.model || 'claude-sonnet-4-20250514';
+
+// ─── INIT ────────────────────────────────────────────────────────
+renderInventory();
+updateStats();
+initSettings();
+
+// ─── SETTINGS INIT ───────────────────────────────────────────────
+function initSettings() {
+  const hasKey = !!(settings.apiKey);
+  const banner = document.getElementById('apiBanner');
+  const btn = document.getElementById('settingsBtn');
+  banner.style.display = hasKey ? 'none' : 'block';
+  btn.classList.toggle('no-key', !hasKey);
+}
+
+function openSettings() {
+  const overlay = document.getElementById('settingsOverlay');
+  overlay.classList.add('open');
+
+  // Populate fields
+  const keyInput = document.getElementById('apiKeyInput');
+  keyInput.value = settings.apiKey || '';
+  updateApiStatusUI(settings.apiKey);
+
+  const store = document.getElementById('preferredStore');
+  store.value = settings.preferredStore || 'both';
+
+  const threshold = document.getElementById('lowStockThreshold');
+  threshold.value = settings.lowStockThreshold || 2;
+
+  // Model selection
+  selectedModel = settings.model || 'claude-sonnet-4-20250514';
+  document.querySelectorAll('.model-option').forEach(opt => {
+    const val = opt.querySelector('input').value;
+    opt.classList.toggle('selected', val === selectedModel);
+  });
+}
+
+function closeSettingsModal(e) {
+  if (e.target === document.getElementById('settingsOverlay')) closeSettingsDirect();
+}
+function closeSettingsDirect() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+}
+
+function saveSettings() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  settings.apiKey = key;
+  settings.model = selectedModel;
+  settings.preferredStore = document.getElementById('preferredStore').value;
+  settings.lowStockThreshold = parseInt(document.getElementById('lowStockThreshold').value) || 2;
+
+  localStorage.setItem('heimlager_settings', JSON.stringify(settings));
+  initSettings();
+  closeSettingsDirect();
+  showToast('Settings saved ✓', 'success');
+  renderInventory(); // re-render to apply new threshold
+  updateStats();
+}
+
+function onApiKeyInput(val) {
+  updateApiStatusUI(val);
+}
+
+function updateApiStatusUI(key) {
+  const dot = document.getElementById('apiStatusDot');
+  const text = document.getElementById('apiStatusText');
+  if (!key) {
+    dot.className = 'api-status-dot';
+    text.textContent = 'No key configured';
+  } else if (key.startsWith('sk-ant-')) {
+    dot.className = 'api-status-dot valid';
+    text.textContent = 'Key format looks valid';
+  } else {
+    dot.className = 'api-status-dot invalid';
+    text.textContent = 'Invalid format — should start with sk-ant-';
+  }
+}
+
+function toggleApiKeyVisibility() {
+  const input = document.getElementById('apiKeyInput');
+  const btn = document.getElementById('apiKeyToggle');
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+function selectModel(val, el) {
+  selectedModel = val;
+  document.querySelectorAll('.model-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function clearAllData() {
+  if (!confirm('DELETE ALL INVENTORY DATA?\nThis cannot be undone.')) return;
+  inventory = [];
+  localStorage.removeItem('heimlager_inventory');
+  renderInventory();
+  updateStats();
+  closeSettingsDirect();
+  showToast('All inventory cleared', 'info');
+}
+
+function getApiKey() {
+  return settings.apiKey || '';
+}
+
+function getLowStockThreshold() {
+  return settings.lowStockThreshold || 2;
+}
+
+// ─── MODE SWITCH ─────────────────────────────────────────────────
+function switchMode(mode) {
+  document.getElementById('barcodeMode').style.display = mode === 'barcode' ? 'block' : 'none';
+  document.getElementById('photoMode').style.display = mode === 'photo' ? 'block' : 'none';
+  document.getElementById('tab-barcode').classList.toggle('active', mode === 'barcode');
+  document.getElementById('tab-photo').classList.toggle('active', mode === 'photo');
+  clearResult();
+}
+
+function onBarcodeInput(val) {
+  // Auto-trigger on typical barcode lengths
+  if (val.length >= 8 && val.length <= 14) {
+    clearTimeout(window._barcodeTimer);
+    window._barcodeTimer = setTimeout(() => lookupBarcode(), 600);
+  }
+}
+
+// ─── BARCODE LOOKUP ───────────────────────────────────────────────
+async function lookupBarcode() {
+  const barcode = document.getElementById('barcodeInput').value.trim();
+  if (!barcode) return showToast('Enter a barcode first', 'error');
+  await lookupProduct(barcode, null);
+}
+
+// ─── PHOTO LOOKUP ─────────────────────────────────────────────────
+function handlePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    photoBase64 = e.target.result.split(',')[1];
+    const preview = document.getElementById('photoPreview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    document.getElementById('photoLookupBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function lookupByPhoto() {
+  if (!photoBase64) return;
+  await lookupProduct(null, photoBase64);
+}
+
+// ─── CORE LOOKUP (calls Claude AI) ────────────────────────────────
+async function lookupProduct(barcode, imageBase64) {
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    showToast('Add your API key in Settings first ⚙', 'error');
+    openSettings();
+    return;
+  }
+  showLoading(true);
+  clearResult();
+
+  const prompt = barcode
+    ? `You are a product lookup assistant. The user scanned barcode: ${barcode}
+
+Search for this product on dm.de or amazon.de. Return ONLY a JSON object (no markdown, no explanation) with these exact fields:
+{
+  "name": "Full product name",
+  "barcode": "${barcode}",
+  "brand": "Brand name",
+  "details": "2-3 sentence product description including size/weight, key features, usage",
+  "source": "dm.de or amazon.de",
+  "imageQuery": "A specific 4-6 word image search query to find the exact product photo"
+}
+
+Use your knowledge of European retail products. The barcode prefix gives clues: 400-440=Germany, 40=dm/Germany. Be specific and accurate.`
+    : `You are a product lookup assistant. The user uploaded a photo of a product or barcode.
+
+Analyze the image carefully. Identify the product name, brand, any visible barcode, and details.
+Return ONLY a JSON object (no markdown, no explanation):
+{
+  "name": "Full product name",
+  "barcode": "barcode number if visible, else empty string",
+  "brand": "Brand name",
+  "details": "2-3 sentence product description including size/weight, key features, usage",
+  "source": "dm.de or amazon.de",
+  "imageQuery": "A specific 4-6 word image search query to find the exact product photo"
+}`;
+
+  try {
+    const messages = imageBase64
+      ? [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+          { type: 'text', text: prompt }
+        ]}]
+      : [{ role: 'user', content: prompt }];
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        max_tokens: 1000,
+        messages
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.map(b => b.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const product = JSON.parse(clean);
+
+    // Now fetch an image for the product
+    const imgUrl = await fetchProductImage(product.imageQuery || product.name);
+    product.imageUrl = imgUrl;
+
+    currentResult = product;
+    currentMode = 'add';
+    showResult(product);
+
+  } catch(e) {
+    showToast('Lookup failed. Try again.', 'error');
+    console.error(e);
+  }
+
+  showLoading(false);
+}
+
+// ─── IMAGE FETCH via AI ───────────────────────────────────────────
+async function fetchProductImage(query) {
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        max_tokens: 500,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: `Find a product image URL for: ${query}. Use web search to find a direct image URL (.jpg or .png) of this exact product on a white background. Return ONLY the image URL, nothing else.` }]
+      })
+    });
+    const data = await res.json();
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const urlMatch = text.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)/i);
+    return urlMatch ? urlMatch[0] : null;
+  } catch(e) { return null; }
+}
+
+// ─── SHOW/HIDE ────────────────────────────────────────────────────
+function showLoading(on) {
+  document.getElementById('loadingState').style.display = on ? 'block' : 'none';
+  document.getElementById('lookupBtn') && (document.getElementById('lookupBtn').disabled = on);
+}
+
+function showResult(product) {
+  const card = document.getElementById('resultCard');
+  card.style.display = 'block';
+
+  // Image
+  const img = document.getElementById('resultImg');
+  const placeholder = document.getElementById('resultImgPlaceholder');
+  if (product.imageUrl) {
+    img.src = product.imageUrl;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    img.onerror = () => { img.style.display = 'none'; placeholder.style.display = 'flex'; };
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+
+  document.getElementById('resultSource').textContent = product.source || 'AI LOOKUP';
+  document.getElementById('resultName').textContent = product.name || 'Unknown Product';
+  document.getElementById('resultBarcode').textContent = product.barcode || '';
+  document.getElementById('resultDetails').textContent = product.details || '';
+
+  // Check if item exists in inventory
+  const existing = inventory.find(i => i.barcode === product.barcode && product.barcode);
+  document.getElementById('deductBtn').style.display = existing ? 'block' : 'none';
+
+  document.getElementById('addModeUI').style.display = 'block';
+  document.getElementById('deductModeUI').classList.remove('visible');
+}
+
+function clearResult() {
+  currentResult = null;
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('barcodeInput') && (document.getElementById('barcodeInput').value = '');
+  document.getElementById('deductBtn').style.display = 'none';
+}
+
+// ─── DEDUCT MODE ──────────────────────────────────────────────────
+function switchToDeductMode() {
+  if (!currentResult) return;
+  const existing = inventory.find(i => i.barcode === currentResult.barcode);
+  if (!existing) return showToast('Item not in inventory', 'error');
+
+  currentMode = 'deduct';
+  document.getElementById('addModeUI').style.display = 'none';
+  document.getElementById('deductModeUI').classList.add('visible');
+  document.getElementById('deductInfo').innerHTML =
+    `<strong>${existing.name}</strong><br>Current stock: <strong style="color:var(--accent)">${existing.qty} units</strong>`;
+  document.getElementById('deductQtyInput').value = 1;
+  document.getElementById('deductQtyInput').max = existing.qty;
+}
+
+function changeDeductQty(delta) {
+  const input = document.getElementById('deductQtyInput');
+  input.value = Math.max(1, parseInt(input.value || 1) + delta);
+}
+
+function confirmDeduct() {
+  if (!currentResult) return;
+  const qty = parseInt(document.getElementById('deductQtyInput').value) || 1;
+  const idx = inventory.findIndex(i => i.barcode === currentResult.barcode);
+  if (idx === -1) return showToast('Item not found', 'error');
+
+  inventory[idx].qty = Math.max(0, inventory[idx].qty - qty);
+  if (inventory[idx].qty === 0) {
+    inventory.splice(idx, 1);
+    showToast('Item depleted & removed from storage', 'info');
+  } else {
+    showToast(`Deducted ${qty} unit(s). Remaining: ${inventory[idx].qty}`, 'success');
+  }
+  saveInventory();
+  renderInventory();
+  updateStats();
+  clearResult();
+  cancelDeduct();
+}
+
+function cancelDeduct() {
+  currentMode = 'add';
+  document.getElementById('addModeUI').style.display = 'block';
+  document.getElementById('deductModeUI').classList.remove('visible');
+}
+
+// ─── ADD TO INVENTORY ─────────────────────────────────────────────
+function addToInventory() {
+  if (!currentResult) return;
+  const qty = parseInt(document.getElementById('qtyInput').value) || 1;
+  const existing = inventory.find(i => i.barcode === currentResult.barcode && currentResult.barcode);
+
+  if (existing) {
+    existing.qty += qty;
+    showToast(`Updated: ${existing.name} → ${existing.qty} units`, 'success');
+  } else {
+    inventory.push({
+      id: Date.now().toString(),
+      barcode: currentResult.barcode || `MANUAL-${Date.now()}`,
+      name: currentResult.name,
+      brand: currentResult.brand,
+      details: currentResult.details,
+      source: currentResult.source,
+      imageUrl: currentResult.imageUrl,
+      qty,
+      addedAt: new Date().toISOString()
+    });
+    showToast(`Added: ${currentResult.name}`, 'success');
+  }
+
+  saveInventory();
+  renderInventory();
+  updateStats();
+  clearResult();
+}
+
+// ─── QTY CONTROLS ─────────────────────────────────────────────────
+function changeQty(delta) {
+  const input = document.getElementById('qtyInput');
+  input.value = Math.max(1, parseInt(input.value || 1) + delta);
+}
+
+// ─── RENDER INVENTORY ─────────────────────────────────────────────
+function renderInventory(items) {
+  const grid = document.getElementById('inventoryGrid');
+  const list = items || inventory;
+
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <h3>LAGER LEER</h3>
+      <p>Scan a barcode or take a photo<br>to add your first item</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(item => `
+    <div class="item-card ${item.qty <= getLowStockThreshold() ? 'low-stock' : ''}" onclick="openModal('${item.barcode}')">
+      ${item.imageUrl
+        ? `<img class="card-img" src="${item.imageUrl}" alt="${item.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+        : ''}
+      <div class="card-img-placeholder" style="${item.imageUrl ? 'display:none' : ''}">📦</div>
+      <div class="card-body">
+        <div class="card-name">${item.name}</div>
+        <div class="card-barcode">${item.barcode}</div>
+        <div class="card-footer">
+          <div>
+            <div class="card-qty">${item.qty}</div>
+            <div class="card-qty-label">UNITS</div>
+          </div>
+          <div class="card-actions">
+            <button class="card-action-btn" onclick="quickDeduct(event,'${item.barcode}')">−</button>
+            <button class="card-action-btn" onclick="quickAdd(event,'${item.barcode}')">+</button>
+            <button class="card-action-btn del" onclick="deleteItem(event,'${item.barcode}')">🗑</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── QUICK ACTIONS ────────────────────────────────────────────────
+function quickAdd(e, barcode) {
+  e.stopPropagation();
+  const item = inventory.find(i => i.barcode === barcode);
+  if (!item) return;
+  item.qty++;
+  saveInventory(); renderInventory(); updateStats();
+  showToast(`+1 → ${item.name}`, 'success');
+}
+
+function quickDeduct(e, barcode) {
+  e.stopPropagation();
+  const item = inventory.find(i => i.barcode === barcode);
+  if (!item) return;
+  if (item.qty <= 1) {
+    if (!confirm(`Remove "${item.name}" from storage?`)) return;
+    inventory = inventory.filter(i => i.barcode !== barcode);
+    showToast('Item removed', 'info');
+  } else {
+    item.qty--;
+    showToast(`−1 → ${item.name} (${item.qty} left)`, 'info');
+  }
+  saveInventory(); renderInventory(); updateStats();
+}
+
+function deleteItem(e, barcode) {
+  e.stopPropagation();
+  if (!confirm('Remove this item from storage?')) return;
+  inventory = inventory.filter(i => i.barcode !== barcode);
+  saveInventory(); renderInventory(); updateStats();
+  showToast('Item removed', 'info');
+}
+
+// ─── FILTER ───────────────────────────────────────────────────────
+function filterInventory(query) {
+  lowFilter = false;
+  document.getElementById('lowBtn').classList.remove('active');
+  const q = query.toLowerCase();
+  const filtered = q ? inventory.filter(i => i.name.toLowerCase().includes(q) || i.barcode.includes(q)) : inventory;
+  renderInventory(filtered);
+}
+
+function filterLow() {
+  lowFilter = !lowFilter;
+  document.getElementById('lowBtn').classList.toggle('active', lowFilter);
+  document.getElementById('inventorySearch').value = '';
+  renderInventory(lowFilter ? inventory.filter(i => i.qty <= getLowStockThreshold()) : inventory);
+}
+
+// ─── MODAL ────────────────────────────────────────────────────────
+function openModal(barcode) {
+  const item = inventory.find(i => i.barcode === barcode);
+  if (!item) return;
+  modalItemBarcode = barcode;
+  document.getElementById('modalImg').src = item.imageUrl || '';
+  document.getElementById('modalImg').style.display = item.imageUrl ? 'block' : 'none';
+  document.getElementById('modalName').textContent = item.name;
+  document.getElementById('modalBarcode').textContent = item.barcode;
+  document.getElementById('modalDetails').textContent = item.details;
+  document.getElementById('modalQtyInput').value = item.qty;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  modalItemBarcode = null;
+}
+
+function modalChangeQty(delta) {
+  const input = document.getElementById('modalQtyInput');
+  input.value = Math.max(0, parseInt(input.value || 0) + delta);
+}
+
+function updateModalQty() {
+  if (!modalItemBarcode) return;
+  const qty = parseInt(document.getElementById('modalQtyInput').value) || 0;
+  const item = inventory.find(i => i.barcode === modalItemBarcode);
+  if (!item) return;
+  item.qty = qty;
+  saveInventory(); renderInventory(); updateStats();
+  showToast(`Updated: ${item.name} → ${qty} units`, 'success');
+  closeModalDirect();
+}
+
+function deleteModalItem() {
+  if (!confirm('Remove from storage?')) return;
+  inventory = inventory.filter(i => i.barcode !== modalItemBarcode);
+  saveInventory(); renderInventory(); updateStats();
+  showToast('Item removed', 'info');
+  closeModalDirect();
+}
+
+// ─── STATS ────────────────────────────────────────────────────────
+function updateStats() {
+  document.getElementById('statItems').textContent = inventory.length;
+  document.getElementById('statUnits').textContent = inventory.reduce((s, i) => s + i.qty, 0);
+  document.getElementById('statLow').textContent = inventory.filter(i => i.qty <= getLowStockThreshold()).length;
+}
+
+// ─── PERSIST ──────────────────────────────────────────────────────
+function saveInventory() {
+  localStorage.setItem('heimlager_inventory', JSON.stringify(inventory));
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type}`;
+  t.style.display = 'block';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+</script>
+</body>
+</html>
