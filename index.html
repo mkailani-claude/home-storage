@@ -6,322 +6,234 @@
 <title>HEIMLAGER — Image Tester</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #0e0f11; color: #e8e4d8; font-family: 'Courier New', monospace; padding: 16px; }
-h1 { color: #f0c060; font-size: 1.3rem; margin-bottom: 2px; }
-.sub { color: #8a8070; font-size: 0.65rem; margin-bottom: 20px; }
-
-.setup { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 14px; margin-bottom: 20px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-.setup input { background: #22262e; border: 1px solid #3a3d45; border-radius: 4px; padding: 10px 12px; color: #e8e4d8; font-family: monospace; font-size: 0.78rem; flex: 1; min-width: 260px; }
+body { background: #0e0f11; color: #e8e4d8; font-family: 'Courier New', monospace; padding: 16px; max-width: 800px; margin: 0 auto; }
+h1 { color: #f0c060; font-size: 1.2rem; margin-bottom: 4px; }
+.sub { color: #8a8070; font-size: 0.62rem; margin-bottom: 18px; line-height: 1.6; }
+.setup { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 14px; margin-bottom: 18px; display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.setup input { background: #22262e; border: 1px solid #3a3d45; border-radius: 4px; padding: 10px 12px; color: #e8e4d8; font-family: monospace; font-size: 0.78rem; flex: 1; min-width: 240px; }
 .setup button { background: #f0c060; color: #0e0f11; border: none; border-radius: 4px; padding: 10px 20px; font-weight: 700; font-family: monospace; font-size: 0.7rem; cursor: pointer; white-space: nowrap; letter-spacing: 0.06em; text-transform: uppercase; }
 .setup button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.products { display: flex; flex-direction: column; gap: 20px; }
-
-.pcard { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; overflow: hidden; }
+.pcard { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
 .pcard-header { padding: 12px 16px; border-bottom: 1px solid #2a2d35; background: #1c1f25; }
-.pcard-name { font-size: 0.85rem; color: #f0c060; font-weight: 700; }
+.pcard-name { font-size: 0.82rem; color: #f0c060; font-weight: 700; }
 .pcard-bc { font-size: 0.58rem; color: #4a4840; margin-top: 2px; }
-
-.sources { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1px; background: #2a2d35; }
-.source { background: #16181c; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-.src-label { font-size: 0.55rem; color: #8a8070; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.4; }
-.img-box { width: 100%; aspect-ratio: 1; background: #22262e; border-radius: 4px; border: 1px solid #2a2d35; display: flex; align-items: center; justify-content: center; overflow: hidden; transition: border-color 0.2s; }
-.img-box img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.sources { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: #2a2d35; }
+@media(max-width:480px){ .sources { grid-template-columns: repeat(2,1fr); } }
+.source { background: #16181c; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.src-label { font-size: 0.52rem; color: #8a8070; letter-spacing: 0.07em; text-transform: uppercase; line-height: 1.5; min-height: 26px; }
+.img-box { width: 100%; aspect-ratio: 1; background: #22262e; border-radius: 4px; border: 1px solid #2a2d35; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.img-box img { max-width:100%; max-height:100%; object-fit:contain; }
 .img-box.ok { border-color: #50c878; background: rgba(80,200,120,0.05); }
-.img-box.fail { border-color: rgba(224,64,64,0.3); background: rgba(224,64,64,0.04); }
-.img-box.pending { border-color: #3a3d45; }
-.status-txt { font-size: 0.52rem; color: #4a4840; word-break: break-all; line-height: 1.4; max-height: 48px; overflow: hidden; }
-.status-txt.ok { color: #50c878; }
-.status-txt.fail { color: #e04040; }
-
-.spinner { width: 18px; height: 18px; border: 2px solid #2a2d35; border-top-color: #f0c060; border-radius: 50%; animation: spin 0.7s linear infinite; }
+.img-box.fail { border-color: rgba(224,64,64,0.25); }
+.stxt { font-size: 0.48rem; color: #4a4840; word-break: break-all; line-height: 1.4; max-height: 32px; overflow: hidden; margin-top: 2px; }
+.stxt.ok { color: #50c878; } .stxt.fail { color: #e04040; }
+.spinner { width: 16px; height: 16px; border: 2px solid #2a2d35; border-top-color: #f0c060; border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.log { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 12px 14px; margin-top: 16px; max-height: 220px; overflow-y: auto; }
-.ll { font-size: 0.6rem; color: #4a4840; margin-bottom: 2px; line-height: 1.5; }
-.ll.ok { color: #50c878; }
-.ll.err { color: #e04040; }
-.ll.info { color: #f0c060; }
-
-.summary { margin-top: 16px; padding: 14px; background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; font-size: 0.7rem; color: #8a8070; display: none; }
+.log { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 12px; margin-top: 12px; max-height: 180px; overflow-y: auto; }
+.ll { font-size: 0.58rem; color: #4a4840; margin-bottom: 2px; line-height: 1.5; }
+.ll.ok { color: #50c878; } .ll.err { color: #e04040; } .ll.info { color: #f0c060; }
+.summary { margin-top: 14px; padding: 14px; background: #16181c; border: 1px solid #3a3d45; border-radius: 8px; font-size: 0.68rem; color: #8a8070; display: none; line-height: 2; }
 .summary b { color: #f0c060; }
 </style>
 </head>
 <body>
 
-<h1>HEIMLAGER — Image Source Tester</h1>
-<div class="sub">Tests 6 image sources × 3 products — find what works for HEIMLAGER</div>
+<h1>HEIMLAGER — Image Tester</h1>
+<div class="sub">Tests 6 image sources across 3 real products. All URLs proxied through weserv.nl for CORS.<br>Claude prompt v2: allowed to return ANY URL including retailer CDNs.</div>
 
 <div class="setup">
-  <input type="password" id="apikey" placeholder="sk-ant-api03-… (your Anthropic API key)">
-  <button id="runbtn" onclick="runAll()">▶ Run All Tests</button>
+  <input type="password" id="apikey" placeholder="sk-ant-api03-…  (Anthropic API key)">
+  <button id="runbtn" onclick="runAll()">▶ Run Tests</button>
 </div>
 
-<div class="products" id="products"></div>
+<div id="products"></div>
 <div class="log" id="log"><div class="ll info">Enter API key and tap Run…</div></div>
 <div class="summary" id="summary"></div>
 
 <script>
-// ── CONFIG ────────────────────────────────────────────────────────
 const PRODUCTS = [
   {
     id: 'sag',
     name: 'Sagrotan 2in1 Allzweck- & Bodenreiniger XXL',
     barcode: '4002448066378',
-    query: 'Sagrotan 2in1 Allzweck Bodenreiniger XXL blau Reckitt'
+    q1: 'Sagrotan 2in1 Allzweck Bodenreiniger XXL blau Reckitt 4002448066378',
+    q2: 'Sagrotan Allzweckreiniger blau Flasche'
   },
   {
     id: 'env',
-    name: 'Posthorn Briefumschläge DIN Lang 110×220mm',
+    name: 'Posthorn Briefumschläge DIN Lang',
     barcode: '4040134131337',
-    query: 'Posthorn Briefumschläge DIN lang selbstklebend weiß 100 Stück'
+    q1: 'Posthorn Briefumschläge DIN lang selbstklebend weiß 100 Stück 4040134131337',
+    q2: 'Bong Posthorn envelope DIN lang white 100'
   },
   {
     id: 'bb',
-    name: 'Bottle Bottle Thermos Travel Mug White',
+    name: 'Bottle Bottle Thermos White',
     barcode: '',
-    query: 'Bottle Bottle thermos travel mug white stainless steel'
+    q1: 'Bottle Bottle thermos travel mug white stainless steel',
+    q2: 'bottlebottle vacuum flask white brown logo'
   }
 ];
 
-const SOURCES = [
-  { id: 'upc',    label: 'UPC Item DB' },
-  { id: 'off',    label: 'Open Food Facts' },
-  { id: 'obf',    label: 'Open Beauty Facts' },
-  { id: 'opf',    label: 'Open Products Facts' },
-  { id: 'ddg',    label: 'DuckDuckGo Instant' },
-  { id: 'claude', label: 'Claude web_search' },
-];
+const SRCS = ['off','obf','opf','upc','claude-any','claude-open'];
+const SLABELS = {
+  'off':        'Open\nFood Facts',
+  'obf':        'Open\nBeauty Facts',
+  'opf':        'Open\nProducts Facts',
+  'upc':        'UPC\nItem DB',
+  'claude-any': 'Claude\n(any URL)',
+  'claude-open':'Claude\n(open DBs)',
+};
 
 let apiKey = '';
-const results = {}; // results[prodId][srcId] = { ok, url }
+const RES = {};
 
-// ── DOM BUILD ─────────────────────────────────────────────────────
-function buildUI() {
-  const container = document.getElementById('products');
+// Build grid
+(()=>{
+  const c = document.getElementById('products');
   for (const p of PRODUCTS) {
-    const card = document.createElement('div');
-    card.className = 'pcard';
-    card.innerHTML = `
-      <div class="pcard-header">
-        <div class="pcard-name">${p.name}</div>
-        <div class="pcard-bc">${p.barcode ? 'Barcode: ' + p.barcode : 'No barcode — name search only'}</div>
-      </div>
-      <div class="sources" id="srcs-${p.id}"></div>
-    `;
-    container.appendChild(card);
-    const srcsEl = card.querySelector(`#srcs-${p.id}`);
-    for (const s of SOURCES) {
-      srcsEl.innerHTML += `
-        <div class="source">
-          <div class="src-label">${s.label}</div>
-          <div class="img-box pending" id="box-${p.id}-${s.id}"><div class="spinner"></div></div>
-          <div class="status-txt" id="txt-${p.id}-${s.id}">Waiting…</div>
-        </div>
-      `;
+    const el = document.createElement('div');
+    el.className = 'pcard';
+    el.innerHTML = `<div class="pcard-header"><div class="pcard-name">${p.name}</div><div class="pcard-bc">${p.barcode?'EAN: '+p.barcode:'No barcode'}</div></div><div class="sources" id="s-${p.id}"></div>`;
+    c.appendChild(el);
+    const sg = el.querySelector(`#s-${p.id}`);
+    for (const s of SRCS) {
+      sg.innerHTML += `<div class="source"><div class="src-label">${SLABELS[s].replace('\n','<br>')}</div><div class="img-box" id="b-${p.id}-${s}"><div class="spinner"></div></div><div class="stxt" id="t-${p.id}-${s}">…</div></div>`;
     }
   }
-}
-buildUI();
+})();
 
-// ── LOG ───────────────────────────────────────────────────────────
-function log(msg, type = '') {
-  const el = document.getElementById('log');
-  const d = document.createElement('div');
-  d.className = 'll ' + type;
-  d.textContent = new Date().toLocaleTimeString('de') + '  ' + msg;
-  el.appendChild(d);
-  el.scrollTop = el.scrollHeight;
-}
+const log = (m,t='') => { const e=document.getElementById('log'); const d=document.createElement('div'); d.className='ll '+t; d.textContent=new Date().toLocaleTimeString()+' '+m; e.appendChild(d); e.scrollTop=e.scrollHeight; };
+const weserv = url => 'https://images.weserv.nl/?url='+encodeURIComponent(url)+'&w=300&output=webp&we';
 
-// ── HELPERS ───────────────────────────────────────────────────────
-function weserv(url) {
-  return 'https://images.weserv.nl/?url=' + encodeURIComponent(url) + '&w=300&output=webp&we';
-}
-
-function setResult(prodId, srcId, url, ok, note) {
-  const box = document.getElementById(`box-${prodId}-${srcId}`);
-  const txt = document.getElementById(`txt-${prodId}-${srcId}`);
-  if (!results[prodId]) results[prodId] = {};
-  results[prodId][srcId] = { ok, url };
-
-  if (ok && url) {
+function show(pid, sid, url, errNote) {
+  const box = document.getElementById(`b-${pid}-${sid}`);
+  const txt = document.getElementById(`t-${pid}-${sid}`);
+  if (!RES[pid]) RES[pid]={};
+  if (url) {
+    txt.textContent = url.slice(0,65)+'…';
     const img = new Image();
     img.onload = () => {
-      box.classList.remove('pending'); box.classList.add('ok');
-      box.innerHTML = '';
-      img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain';
-      box.appendChild(img);
-      txt.className = 'status-txt ok';
-      txt.textContent = '✓ ' + url.slice(0, 60) + (url.length > 60 ? '…' : '');
+      box.className='img-box ok'; box.innerHTML='';
+      img.style.cssText='max-width:100%;max-height:100%;object-fit:contain';
+      box.appendChild(img); txt.className='stxt ok'; RES[pid][sid]=true;
+      log(`✓ ${pid}/${sid} loaded OK`, 'ok');
     };
     img.onerror = () => {
-      box.classList.remove('pending'); box.classList.add('fail');
-      box.innerHTML = '<span style="font-size:.6rem;color:#e04040">CORS/404</span>';
-      txt.className = 'status-txt fail';
-      txt.textContent = '✗ load failed: ' + url.slice(0, 60);
-      results[prodId][srcId].ok = false;
+      box.className='img-box fail';
+      box.innerHTML='<span style="font-size:.52rem;color:#e04040;padding:4px;text-align:center">CORS / 404</span>';
+      txt.className='stxt fail'; txt.textContent='✗ load failed'; RES[pid][sid]=false;
+      log(`✗ ${pid}/${sid} image load failed`, 'err');
     };
     img.src = url;
   } else {
-    box.classList.remove('pending'); box.classList.add('fail');
-    box.innerHTML = '<span style="font-size:.55rem;color:#4a4840;text-align:center;padding:4px">' + (note || 'No result') + '</span>';
-    txt.className = 'status-txt fail';
-    txt.textContent = note || 'Not found';
+    box.className='img-box fail';
+    box.innerHTML=`<span style="font-size:.5rem;color:#4a4840;padding:6px;text-align:center;line-height:1.4">${errNote||'Not found'}</span>`;
+    txt.className='stxt fail'; txt.textContent=errNote||'—'; RES[pid][sid]=false;
   }
 }
 
-// ── API CALLS ─────────────────────────────────────────────────────
-async function fetchUPC(prod) {
-  const id = 'upc';
+async function tryFacts(p, db, baseUrl, sid) {
+  if (!p.barcode) { show(p.id, sid, '', 'Needs barcode'); return; }
   try {
-    const url = prod.barcode
-      ? `https://api.upcitemdb.com/prod/trial/lookup?upc=${prod.barcode}`
-      : `https://api.upcitemdb.com/prod/trial/search?s=${encodeURIComponent(prod.query)}&type=product`;
-    log(`[${prod.id}] UPC Item DB → ${url}`);
+    const r = await fetch(`${baseUrl}/api/v0/product/${p.barcode}.json`);
+    const d = await r.json();
+    const img = d?.product?.image_front_url || d?.product?.image_url || '';
+    log(`${p.id}/${sid}: status=${d.status} img=${img?'✓':'✗'}`);
+    show(p.id, sid, img ? weserv(img) : '', `Not in ${db} (status ${d.status})`);
+  } catch(e) { show(p.id, sid, '', e.message); log(`${p.id}/${sid} err: ${e.message}`,'err'); }
+}
+
+async function tryUPC(p) {
+  try {
+    const url = p.barcode
+      ? `https://api.upcitemdb.com/prod/trial/lookup?upc=${p.barcode}`
+      : `https://api.upcitemdb.com/prod/trial/search?s=${encodeURIComponent(p.q1)}&type=product`;
     const r = await fetch(url);
     const d = await r.json();
-    const imgs = (d.items || []).flatMap(i => i.images || []);
-    const img = imgs[0] || '';
-    log(`[${prod.id}] UPC: ${d.items?.length || 0} items, ${imgs.length} images`, img ? 'ok' : 'err');
-    setResult(prod.id, id, img ? weserv(img) : '', !!img, img ? '' : 'Not in UPC DB');
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] UPC error: ${e.message}`, 'err'); }
+    const imgs = (d.items||[]).flatMap(i=>i.images||[]);
+    const img = imgs[0]||'';
+    log(`${p.id}/upc: ${d.items?.length||0} items, ${imgs.length} imgs`);
+    show(p.id, 'upc', img ? weserv(img) : '', 'Not in UPC DB');
+  } catch(e) { show(p.id,'upc','',e.message); log(`${p.id}/upc err: ${e.message}`,'err'); }
 }
 
-async function fetchOFF(prod) {
-  const id = 'off';
-  if (!prod.barcode) { setResult(prod.id, id, '', false, 'Needs barcode'); return; }
+async function tryClaude(p, sid, prompt) {
   try {
-    log(`[${prod.id}] Open Food Facts → ${prod.barcode}`);
-    const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${prod.barcode}.json`);
-    const d = await r.json();
-    const img = d?.product?.image_front_url || d?.product?.image_url || '';
-    log(`[${prod.id}] OFF status=${d.status}, img=${img ? 'found' : 'none'}`, img ? 'ok' : 'err');
-    setResult(prod.id, id, img ? weserv(img) : '', !!img, img ? '' : `Status: ${d.status} (not in OFF)`);
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] OFF error: ${e.message}`, 'err'); }
-}
-
-async function fetchOBF(prod) {
-  const id = 'obf';
-  if (!prod.barcode) { setResult(prod.id, id, '', false, 'Needs barcode'); return; }
-  try {
-    log(`[${prod.id}] Open Beauty Facts → ${prod.barcode}`);
-    const r = await fetch(`https://world.openbeautyfacts.org/api/v0/product/${prod.barcode}.json`);
-    const d = await r.json();
-    const img = d?.product?.image_front_url || d?.product?.image_url || '';
-    log(`[${prod.id}] OBF status=${d.status}, img=${img ? 'found' : 'none'}`, img ? 'ok' : 'err');
-    setResult(prod.id, id, img ? weserv(img) : '', !!img, img ? '' : `Status: ${d.status} (not in OBF)`);
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] OBF error: ${e.message}`, 'err'); }
-}
-
-async function fetchOPF(prod) {
-  const id = 'opf';
-  if (!prod.barcode) { setResult(prod.id, id, '', false, 'Needs barcode'); return; }
-  try {
-    log(`[${prod.id}] Open Products Facts → ${prod.barcode}`);
-    const r = await fetch(`https://world.openproductsfacts.org/api/v0/product/${prod.barcode}.json`);
-    const d = await r.json();
-    const img = d?.product?.image_front_url || d?.product?.image_url || '';
-    log(`[${prod.id}] OPF status=${d.status}, img=${img ? 'found' : 'none'}`, img ? 'ok' : 'err');
-    setResult(prod.id, id, img ? weserv(img) : '', !!img, img ? '' : `Status: ${d.status} (not in OPF)`);
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] OPF error: ${e.message}`, 'err'); }
-}
-
-async function fetchDDG(prod) {
-  const id = 'ddg';
-  try {
-    log(`[${prod.id}] DuckDuckGo → ${prod.query}`);
-    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(prod.query)}&format=json&no_redirect=1&no_html=1`);
-    const d = await r.json();
-    const img = d?.Image || '';
-    log(`[${prod.id}] DDG img=${img || 'none'}`, img ? 'ok' : 'err');
-    setResult(prod.id, id, img ? weserv(img) : '', !!img, img ? '' : 'No DDG image result');
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] DDG error: ${e.message}`, 'err'); }
-}
-
-async function fetchClaude(prod) {
-  const id = 'claude';
-  try {
-    log(`[${prod.id}] Claude web_search → "${prod.query}"`);
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    log(`${p.id}/${sid}: calling Claude…`);
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type':'application/json',
         'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 256,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{
-          role: 'user',
-          content:
-            `Find a product image for: "${prod.query}"${prod.barcode ? ' (barcode ' + prod.barcode + ')' : ''}.\n` +
-            `Search the web. Return ONLY one direct image URL ending in .jpg, .jpeg, .png, or .webp.\n` +
-            `Good sources: openfoodfacts.org, openbeautyfacts.org, openproductsfacts.org, manufacturer website, Wikipedia.\n` +
-            `Do NOT return amazon.de, dm.de, or major retailer CDN URLs — they block cross-origin loading.\n` +
-            `Reply with JUST the raw URL and nothing else. If nothing suitable found, reply NONE.`
-        }]
+        tools: [{ type:'web_search_20250305', name:'web_search' }],
+        messages: [{ role:'user', content: prompt }]
       })
     });
-    const data = await resp.json();
-    const txt = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
-    const m = txt.match(/https?:\/\/[^\s"'\n<>()\[\]]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'\n<>]*)?/i);
-    const url = m ? m[0].replace(/[.,;)>\]"']+$/, '') : '';
-    log(`[${prod.id}] Claude returned: ${url || txt.slice(0,80) || 'empty'}`, url ? 'ok' : 'err');
-    setResult(prod.id, id, url ? weserv(url) : '', !!url, url ? '' : `Claude said: ${txt.slice(0,50) || 'nothing'}`);
-  } catch(e) { setResult(prod.id, id, '', false, e.message); log(`[${prod.id}] Claude error: ${e.message}`, 'err'); }
+    const data = await r.json();
+    const txt = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+    log(`${p.id}/${sid}: → ${txt.slice(0,80)}`);
+    const m = txt.match(/https?:\/\/[^\s"'\n<>()\[\],]+/i);
+    const imgUrl = m ? m[0].replace(/[.,;)>\]"']+$/,'') : '';
+    show(p.id, sid, imgUrl ? weserv(imgUrl) : '', `Claude: "${txt.slice(0,45)||'no response'}"`);
+  } catch(e) { show(p.id,sid,'',e.message); log(`${p.id}/${sid} err: ${e.message}`,'err'); }
 }
 
-// ── RUN ALL ───────────────────────────────────────────────────────
 async function runAll() {
   apiKey = document.getElementById('apikey').value.trim();
-  if (!apiKey.startsWith('sk-ant-')) { alert('Enter a valid API key (sk-ant-…)'); return; }
-
+  if (!apiKey.startsWith('sk-ant-')) { alert('Enter a valid Anthropic API key (starts with sk-ant-)'); return; }
   const btn = document.getElementById('runbtn');
   btn.disabled = true;
   document.getElementById('log').innerHTML = '';
   document.getElementById('summary').style.display = 'none';
-
-  // Reset all boxes to spinning
-  for (const p of PRODUCTS) for (const s of SOURCES) {
-    document.getElementById(`box-${p.id}-${s.id}`).className = 'img-box pending';
-    document.getElementById(`box-${p.id}-${s.id}`).innerHTML = '<div class="spinner"></div>';
-    document.getElementById(`txt-${p.id}-${s.id}`).textContent = 'Testing…';
-    document.getElementById(`txt-${p.id}-${s.id}`).className = 'status-txt';
+  for (const p of PRODUCTS) for (const s of SRCS) {
+    document.getElementById(`b-${p.id}-${s}`).className='img-box';
+    document.getElementById(`b-${p.id}-${s}`).innerHTML='<div class="spinner"></div>';
+    document.getElementById(`t-${p.id}-${s}`).textContent='…';
+    document.getElementById(`t-${p.id}-${s}`).className='stxt';
   }
+  log('Running 18 tests in parallel…','info');
 
-  log('Starting all tests in parallel…', 'info');
-
-  // Run everything in parallel
   await Promise.all(PRODUCTS.flatMap(p => [
-    fetchUPC(p), fetchOFF(p), fetchOBF(p), fetchOPF(p), fetchDDG(p), fetchClaude(p)
+    tryFacts(p, 'OFF', 'https://world.openfoodfacts.org', 'off'),
+    tryFacts(p, 'OBF', 'https://world.openbeautyfacts.org', 'obf'),
+    tryFacts(p, 'OPF', 'https://world.openproductsfacts.org', 'opf'),
+    tryUPC(p),
+
+    // Claude: any URL allowed (retailer CDNs OK) → proxied through weserv
+    tryClaude(p, 'claude-any',
+      `Search for a product image of: "${p.q1}".\n` +
+      `Use web search. Return ONLY one direct image URL — retailer CDNs like amazon.de or dm.de are fine.\n` +
+      `The URL must end in .jpg, .jpeg, .png, or .webp.\n` +
+      `Reply with JUST the raw URL. Nothing else. If none found, reply NONE.`
+    ),
+
+    // Claude: open databases only
+    tryClaude(p, 'claude-open',
+      `Find a product image for: "${p.q2}"${p.barcode?' EAN '+p.barcode:''}.\n` +
+      `Search openfoodfacts.org, openbeautyfacts.org, openproductsfacts.org, or the brand's own website.\n` +
+      `Return ONLY one direct image URL ending in .jpg, .png, or .webp. Just the URL. Reply NONE if not found.`
+    ),
   ]));
 
-  // Wait a bit for image loads to resolve
-  await new Promise(r => setTimeout(r, 2000));
+  await new Promise(r => setTimeout(r, 2500));
+  log('All done.','info');
 
-  log('All tests complete.', 'info');
-  showSummary();
-  btn.disabled = false;
-  btn.textContent = '↺ Run Again';
-}
-
-function showSummary() {
   const s = document.getElementById('summary');
   s.style.display = 'block';
-  let html = '<b>RESULTS SUMMARY</b><br><br>';
+  let html = '<b>SUMMARY</b><br>';
   for (const p of PRODUCTS) {
-    const winners = SOURCES.filter(src => results[p.id]?.[src.id]?.ok);
-    html += `<b>${p.name}</b>: `;
-    html += winners.length
-      ? winners.map(w => `✓ ${w.label}`).join(', ')
-      : '✗ No working source found';
-    html += '<br>';
+    const wins = SRCS.filter(src => RES[p.id]?.[src]);
+    html += `<b>${p.name.slice(0,38)}</b>: ${wins.length ? wins.map(w=>'✓ '+SLABELS[w].split('\n')[0]).join(', ') : '✗ all failed'}<br>`;
   }
   s.innerHTML = html;
+  btn.disabled = false; btn.textContent = '↺ Run Again';
 }
 </script>
 </body>
