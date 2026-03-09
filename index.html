@@ -1226,9 +1226,13 @@ async function lookupBarcode() {
 }
 
 // ─── PHOTO LOOKUP ─────────────────────────────────────────────────
+let photoMediaType = 'image/jpeg';
+
 function handlePhoto(input) {
   const file = input.files[0];
   if (!file) return;
+  const supported = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  photoMediaType = supported.includes(file.type) ? file.type : 'image/jpeg';
   const reader = new FileReader();
   reader.onload = e => {
     photoBase64 = e.target.result.split(',')[1];
@@ -1241,12 +1245,12 @@ function handlePhoto(input) {
 }
 
 async function lookupByPhoto() {
-  if (!photoBase64) return;
-  await lookupProduct(null, photoBase64);
+  if (!photoBase64) return showToast('No photo selected', 'error');
+  await lookupProduct(null, photoBase64, photoMediaType);
 }
 
 // ─── CORE LOOKUP (calls Claude AI) ────────────────────────────────
-async function lookupProduct(barcode, imageBase64) {
+async function lookupProduct(barcode, imageBase64, mediaType = 'image/jpeg') {
   const apiKey = getApiKey();
   if (!apiKey) {
     showToast('Add your API key in Settings first ⚙', 'error');
@@ -1286,7 +1290,7 @@ Return ONLY a JSON object (no markdown, no explanation):
   try {
     const messages = imageBase64
       ? [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: imageBase64 } },
+          { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
           { type: 'text', text: prompt }
         ]}]
       : [{ role: 'user', content: prompt }];
