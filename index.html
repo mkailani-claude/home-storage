@@ -573,38 +573,72 @@ function parseJ(t){
 }
 
 /* ─────────────────────────────────────────
-   IMAGE FETCH — web_search tool
-   Strategy: give Haiku a direct prompt to
-   find a real product image on amazon/dm
+   IMAGE FETCH — multi-strategy, CORS-safe
 ───────────────────────────────────────── */
-async function fetchImg(name,brand,source,barcode){
+
+// Wrap any URL through weserv.nl which proxies
+// the image and adds CORS headers
+function weserv(url){
+  return'https://images.weserv.nl/?url='+encodeURIComponent(url)+'&w=300&output=webp&we';
+}
+
+// Strategy 1: Open Food Facts (free, CORS-open, great for food/household barcodes)
+async function tryOpenFoodFacts(barcode){
+  if(!barcode||barcode.length<8)return'';
   try{
-    const store=(source||'').toLowerCase().includes('dm')?'dm.de':'amazon.de';
+    const r=await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    if(!r.ok)return'';
+    const d=await r.json();
+    const img=d?.product?.image_front_url||d?.product?.image_url||'';
+    return img?weserv(img):'';
+  }catch(e){return'';}
+}
+
+// Strategy 2: Open Beauty Facts (dm/drugstore products)
+async function tryOpenBeautyFacts(barcode){
+  if(!barcode||barcode.length<8)return'';
+  try{
+    const r=await fetch(`https://world.openbeautyfacts.org/api/v0/product/${barcode}.json`);
+    if(!r.ok)return'';
+    const d=await r.json();
+    const img=d?.product?.image_front_url||d?.product?.image_url||'';
+    return img?weserv(img):'';
+  }catch(e){return'';}
+}
+
+// Strategy 3: Ask Claude (Haiku) to find an image URL, then proxy it through weserv
+async function tryClaudeImg(name,brand,barcode){
+  try{
     const q=[brand,name,barcode].filter(Boolean).join(' ');
     const data=await callAI([{role:'user',content:
-      `Search for "${q}" on ${store} and find the product listing. `+
-      `Return ONLY one direct image URL for the product photo. `+
-      `The URL must be a real image link (from m.media-amazon.com, images-amazon.com, dm.de, or similar CDNs). `+
-      `No explanation. No markdown. Just the bare URL. If not found, reply NONE.`
+      `Find a product image for: "${q}".\n`+
+      `Search the web and return ONLY a single direct image URL ending in .jpg, .jpeg, .png, or .webp.\n`+
+      `Prefer URLs from: open.fda.gov, openfoodfacts.org, openbeautyfacts.org, buyk.com, instacart.com, freshdirect.com, or any product database with open images.\n`+
+      `Do NOT return amazon.de, dm.de, or any retailer CDN URLs (these are blocked by CORS).\n`+
+      `Return ONLY the raw URL, nothing else. If none found, reply NONE.`
     }],'claude-haiku-4-5-20251001',[{type:'web_search_20250305',name:'web_search'}]);
     const txt=getText(data).trim();
     if(!txt||txt==='NONE'||txt.length<12)return'';
     const m=txt.match(/https?:\/\/[^\s"'\n<>()[\]]+/i);
     if(!m)return'';
-    const url=m[0].replace(/[.,;)>\]]+$/,'');
-    // Accept: known image CDNs, or URLs containing image path hints
-    const ok=/\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(url)
-      ||/m\.media-amazon\.com/i.test(url)
-      ||/images[-.]amazon/i.test(url)
-      ||/dm\.de\/.*image/i.test(url)
-      ||/\.cdn\./i.test(url)
-      ||/\/images?\//i.test(url)
-      ||/\/img\//i.test(url)
-      ||/media\./i.test(url)
-      ||/cloudfront\.net/i.test(url)
-      ||/akamaized/i.test(url);
-    return ok?url:'';
+    const url=m[0].replace(/[.,;)>\]"']+$/,'');
+    if(!/\.(jpg|jpeg|png|webp|gif|avif)(\?.*)?$/i.test(url))return'';
+    return weserv(url);
   }catch(e){return'';}
+}
+
+// Main: try strategies in order, stop at first result
+async function fetchImg(name,brand,source,barcode){
+  // 1. Open Food Facts
+  if(barcode){
+    const u=await tryOpenFoodFacts(barcode);
+    if(u)return u;
+    // 2. Open Beauty Facts (good for dm.de products)
+    const u2=await tryOpenBeautyFacts(barcode);
+    if(u2)return u2;
+  }
+  // 3. Claude web search (proxied through weserv for CORS)
+  return tryClaudeImg(name,brand,barcode);
 }
 
 /* ─────────────────────────────────────────
@@ -619,8 +653,10 @@ async function lookupText(q,isBC){
   const type=isBC?`barcode/EAN "${q}"`:`product name "${q}"`;
   const data=await callAI([{role:'user',content:
     `Identify the product with ${type}. ${storeH()}\n`+
-    `Return a JSON array of 1-3 results. Each: {"name":string,"barcode":string,"brand":string,"details":"2-3 sentences","source":"dm.de or amazon.de"}\n`+
-    `ONLY valid JSON array, no prose.`
+    `Return a JSON array of 1-3 results. Each object must have:\n`+
+    `{"name":string,"barcode":"EAN-13 barcode if known, else empty string","brand":string,"details":"2-3 sentences","source":"dm.de or amazon.de"}\n`+
+    `IMPORTANT: Try hard to provide the real EAN/GTIN barcode — it is critical for image lookup.\n`+
+    `ONLY valid JSON array, no prose, no markdown.`
   }],cfg.model);
   return parseJ(getText(data));
 }
