@@ -1,1641 +1,1672 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HEIMLAGER — Home Storage System</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #0e0f11;
     --surface: #16181c;
-    --surface2: #1e2026;
+    --surface2: #1c1f25;
+    --surface3: #22262e;
+    --gold: #f0c060;
+    --gold-dim: #a07a30;
+    --red: #e04040;
+    --red-dim: #7a2020;
+    --green: #50c878;
+    --text: #e8e4d8;
+    --text-dim: #8a8070;
+    --text-muted: #4a4840;
     --border: #2a2d35;
-    --accent: #f0c060;
-    --accent2: #3b82f6;
-    --danger: #ef4444;
-    --success: #22c55e;
-    --text: #e8eaf0;
-    --muted: #6b7280;
+    --border-accent: #3a3d45;
     --font-display: 'Bebas Neue', sans-serif;
     --font-mono: 'Space Mono', monospace;
     --font-body: 'DM Sans', sans-serif;
+    --radius: 4px;
+    --radius-lg: 8px;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+html { font-size: 16px; }
 
-  /* GRID BACKGROUND */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(240,192,96,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(240,192,96,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+body {
+font-family: var(–font-body);
+background: var(–bg);
+color: var(–text);
+min-height: 100vh;
+background-image:
+linear-gradient(rgba(240,192,96,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(240,192,96,0.03) 1px, transparent 1px);
+background-size: 40px 40px;
+}
 
-  /* HEADER */
-  header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(14,15,17,0.95);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 0 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    height: 60px;
-  }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(–bg); }
+::-webkit-scrollbar-thumb { background: var(–border-accent); border-radius: 3px; }
 
-  .logo {
-    font-family: var(--font-display);
-    font-size: 28px;
-    letter-spacing: 4px;
-    color: var(--accent);
-  }
-  .logo span { color: var(--muted); font-size: 12px; font-family: var(--font-mono); letter-spacing: 2px; display: block; margin-top: -6px; }
+/* ── HEADER ── */
+#header {
+position: sticky; top: 0; z-index: 100;
+background: rgba(14,15,17,0.97);
+border-bottom: 1px solid var(–border);
+backdrop-filter: blur(12px);
+padding: 0 20px;
+}
+.header-inner {
+max-width: 1600px; margin: 0 auto;
+display: flex; align-items: center; gap: 20px;
+height: 60px;
+}
+.logo-block { display: flex; align-items: baseline; gap: 10px; flex-shrink: 0; }
+.logo-text {
+font-family: var(–font-display);
+font-size: 2rem; letter-spacing: 0.05em;
+color: var(–gold); line-height: 1;
+}
+.logo-sub {
+font-family: var(–font-mono);
+font-size: 0.62rem; color: var(–text-dim);
+letter-spacing: 0.08em; text-transform: uppercase;
+}
+.header-divider { width: 1px; height: 36px; background: var(–border); flex-shrink: 0; }
+.stats-bar { display: flex; gap: 24px; flex: 1; }
+.stat-item { display: flex; flex-direction: column; gap: 1px; }
+.stat-value { font-family: var(–font-mono); font-size: 1.1rem; color: var(–gold); font-weight: 700; }
+.stat-label { font-family: var(–font-mono); font-size: 0.58rem; color: var(–text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+.stat-item.warn .stat-value { color: var(–red); }
+.header-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.icon-btn {
+position: relative;
+width: 38px; height: 38px;
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius); cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+color: var(–text-dim); font-size: 1.1rem;
+transition: all 0.15s; user-select: none;
+}
+.icon-btn:hover { border-color: var(–gold); color: var(–gold); }
+.badge {
+position: absolute; top: -4px; right: -4px;
+width: 10px; height: 10px;
+background: var(–red); border-radius: 50%;
+border: 2px solid var(–bg);
+}
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
+/* ── WARNING BANNER ── */
+#api-warning {
+background: rgba(224,64,64,0.12);
+border-bottom: 1px solid rgba(224,64,64,0.3);
+padding: 8px 20px;
+display: flex; align-items: center; justify-content: center; gap: 10px;
+cursor: pointer; transition: background 0.15s;
+}
+#api-warning:hover { background: rgba(224,64,64,0.2); }
+#api-warning .warn-icon { color: var(–red); font-size: 0.9rem; }
+#api-warning .warn-text { font-family: var(–font-mono); font-size: 0.7rem; color: var(–red); letter-spacing: 0.06em; text-transform: uppercase; }
 
-  .header-stats {
-    display: flex;
-    gap: 24px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-  }
-  .header-stats strong { color: var(--accent); font-size: 16px; display: block; }
+/* ── LAYOUT ── */
+.app-layout {
+max-width: 1600px; margin: 0 auto;
+display: grid; grid-template-columns: 360px 1fr;
+gap: 0; min-height: calc(100vh - 60px);
+}
 
-  .settings-btn {
-    width: 36px; height: 36px;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    transition: all .2s;
-    position: relative;
-  }
-  .settings-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .settings-btn.no-key { border-color: rgba(239,68,68,0.5); color: var(--danger); }
-  .settings-btn.no-key::after {
-    content: '';
-    position: absolute;
-    top: -3px; right: -3px;
-    width: 8px; height: 8px;
-    background: var(--danger);
-    border-radius: 50%;
-    border: 2px solid var(--bg);
-  }
+/* ── LEFT PANEL ── */
+#left-panel {
+position: sticky; top: 60px; height: calc(100vh - 60px);
+overflow-y: auto;
+border-right: 1px solid var(–border);
+background: var(–surface);
+display: flex; flex-direction: column;
+}
+.panel-header {
+padding: 16px 20px 0;
+border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.panel-title {
+font-family: var(–font-display); font-size: 1.1rem; letter-spacing: 0.08em;
+color: var(–gold); margin-bottom: 12px;
+}
+.tab-bar { display: flex; gap: 2px; }
+.tab-btn {
+font-family: var(–font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+text-transform: uppercase; padding: 7px 14px;
+background: transparent; border: 1px solid transparent;
+border-bottom: none; color: var(–text-dim);
+cursor: pointer; border-radius: var(–radius) var(–radius) 0 0;
+transition: all 0.15s; user-select: none;
+}
+.tab-btn.active { background: var(–surface2); border-color: var(–border); color: var(–gold); }
+.tab-btn:hover:not(.active) { color: var(–text); }
+.tab-content { display: none; padding: 20px; flex: 1; }
+.tab-content.active { display: flex; flex-direction: column; gap: 12px; }
 
-  /* MAIN LAYOUT */
-  .app {
-    position: relative;
-    z-index: 1;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: 24px;
-    min-height: calc(100vh - 60px);
-  }
+/* ── INPUTS ── */
+.input-group { display: flex; flex-direction: column; gap: 6px; }
+.input-label { font-family: var(–font-mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(–text-dim); }
+.text-input {
+background: var(–surface3); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 10px 14px;
+color: var(–text); font-family: var(–font-mono); font-size: 0.8rem;
+outline: none; width: 100%; transition: border-color 0.15s;
+}
+.text-input:focus { border-color: var(–gold); }
+.text-input::placeholder { color: var(–text-muted); }
 
-  /* PANELS */
-  .panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-  }
+/* ── BUTTONS ── */
+.btn {
+display: flex; align-items: center; justify-content: center; gap: 8px;
+padding: 10px 18px; border-radius: var(–radius);
+font-family: var(–font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
+text-transform: uppercase; cursor: pointer; border: 1px solid transparent;
+transition: all 0.15s; user-select: none; text-decoration: none;
+}
+.btn-primary { background: var(–gold); color: var(–bg); border-color: var(–gold); font-weight: 700; }
+.btn-primary:hover { background: #ffd070; }
+.btn-primary:disabled { background: var(–gold-dim); color: var(–bg); cursor: not-allowed; opacity: 0.5; }
+.btn-secondary { background: var(–surface3); color: var(–text); border-color: var(–border); }
+.btn-secondary:hover { border-color: var(–gold); color: var(–gold); }
+.btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-danger { background: transparent; color: var(–red); border-color: var(–red-dim); }
+.btn-danger:hover { background: rgba(224,64,64,0.1); }
+.btn-ghost { background: transparent; color: var(–text-dim); border-color: var(–border); }
+.btn-ghost:hover { color: var(–text); }
+.btn-full { width: 100%; }
 
-  .panel-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    background: var(--surface2);
-  }
-  .panel-header .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 8px var(--accent);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+/* ── CAMERA LABEL BUTTONS ── */
+.camera-label-btn {
+display: flex; align-items: center; justify-content: center; gap: 8px;
+padding: 10px 18px; border-radius: var(–radius);
+font-family: var(–font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
+text-transform: uppercase; cursor: pointer; border: 1px solid var(–border);
+transition: all 0.15s; background: var(–surface3); color: var(–text);
+width: 100%;
+}
+.camera-label-btn:hover { border-color: var(–gold); color: var(–gold); }
+input[type=“file”].hidden-input { display: none !important; }
 
-  /* LEFT PANEL - SCANNER */
-  .scanner-panel { align-self: start; position: sticky; top: 84px; }
+/* ── PHOTO PREVIEW ── */
+.photo-preview-area {
+position: relative; border: 1px solid var(–border);
+border-radius: var(–radius); overflow: hidden;
+background: var(–surface3); min-height: 120px;
+display: flex; align-items: center; justify-content: center;
+}
+.photo-preview-area img { width: 100%; max-height: 200px; object-fit: contain; display: block; }
+.photo-placeholder { font-family: var(–font-mono); font-size: 0.65rem; color: var(–text-muted); text-align: center; padding: 20px; }
+.photo-clear-btn {
+position: absolute; top: 6px; right: 6px;
+width: 24px; height: 24px; border-radius: 50%;
+background: rgba(14,15,17,0.8); border: 1px solid var(–border);
+color: var(–text-dim); font-size: 0.75rem; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s;
+}
+.photo-clear-btn:hover { color: var(–red); border-color: var(–red); }
 
-  .mode-tabs {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    border-bottom: 1px solid var(--border);
-  }
-  .mode-tab {
-    padding: 12px;
-    text-align: center;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 1px;
-    color: var(--muted);
-    border: none;
-    background: none;
-    transition: all .2s;
-    text-transform: uppercase;
-    border-bottom: 2px solid transparent;
-  }
-  .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(240,192,96,0.05); }
-  .mode-tab:hover:not(.active) { color: var(--text); background: var(--surface2); }
+/* ── LOADING BAR ── */
+.loading-area { display: none; flex-direction: column; gap: 8px; }
+.loading-area.active { display: flex; }
+.loading-bar-track { height: 3px; background: var(–surface3); border-radius: 2px; overflow: hidden; }
+.loading-bar-fill { height: 100%; background: var(–gold); border-radius: 2px; width: 0%; transition: width 0.3s; animation: loading-pulse 1.5s ease-in-out infinite; }
+@keyframes loading-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+.loading-status { font-family: var(–font-mono); font-size: 0.6rem; color: var(–text-dim); letter-spacing: 0.06em; }
 
-  .scanner-body { padding: 20px; }
+/* ── SEARCH RESULTS ── */
+.results-area { display: none; flex-direction: column; gap: 8px; }
+.results-area.active { display: flex; }
+.results-label { font-family: var(–font-mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(–text-dim); }
+.result-card {
+background: var(–surface3); border: 1px solid var(–border);
+border-radius: var(–radius); padding: 12px; cursor: pointer;
+display: flex; gap: 10px; transition: all 0.15s;
+}
+.result-card:hover { border-color: var(–gold-dim); }
+.result-card.selected { border-color: var(–gold); background: rgba(240,192,96,0.06); }
+.result-thumb {
+width: 50px; height: 50px; border-radius: var(–radius);
+object-fit: contain; background: var(–surface2); flex-shrink: 0;
+display: flex; align-items: center; justify-content: center;
+font-size: 1.5rem; overflow: hidden;
+}
+.result-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.result-info { flex: 1; min-width: 0; }
+.result-name { font-size: 0.82rem; font-weight: 500; color: var(–text); line-height: 1.3; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.result-barcode { font-family: var(–font-mono); font-size: 0.6rem; color: var(–text-dim); }
+.source-badge {
+font-family: var(–font-mono); font-size: 0.55rem; letter-spacing: 0.06em;
+padding: 2px 6px; border-radius: 2px; text-transform: uppercase;
+background: var(–surface2); border: 1px solid var(–border); color: var(–text-dim);
+align-self: flex-start; flex-shrink: 0;
+}
 
-  /* SCAN INPUT */
-  .scan-input-wrap {
-    position: relative;
-    margin-bottom: 16px;
-  }
-  .scan-icon {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--accent);
-    font-size: 18px;
-  }
-  .scan-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 14px 14px 14px 46px;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 14px;
-    letter-spacing: 2px;
-    transition: border-color .2s;
-    outline: none;
-  }
-  .scan-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,192,96,0.1); }
-  .scan-input::placeholder { color: var(--muted); letter-spacing: 1px; font-size: 12px; }
+/* ── PRODUCT DETAIL CARD ── */
+.product-detail { display: none; flex-direction: column; gap: 14px; }
+.product-detail.active { display: flex; }
+.product-img-area {
+width: 100%; height: 160px; border-radius: var(–radius);
+background: var(–surface3); border: 1px solid var(–border);
+display: flex; align-items: center; justify-content: center;
+overflow: hidden; position: relative;
+}
+.product-img-area img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.product-img-placeholder { font-size: 3rem; }
+.product-meta { display: flex; flex-direction: column; gap: 4px; }
+.product-name-large { font-family: var(–font-display); font-size: 1.3rem; letter-spacing: 0.04em; color: var(–text); line-height: 1.2; }
+.product-brand { font-family: var(–font-mono); font-size: 0.65rem; color: var(–gold-dim); letter-spacing: 0.08em; text-transform: uppercase; }
+.product-barcode-display { font-family: var(–font-mono); font-size: 0.65rem; color: var(–text-muted); }
+.product-details-text { font-size: 0.8rem; color: var(–text-dim); line-height: 1.6; }
+.qty-editor { display: flex; align-items: center; gap: 10px; }
+.qty-editor-label { font-family: var(–font-mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(–text-dim); flex: 1; }
+.qty-controls { display: flex; align-items: center; gap: 6px; }
+.qty-btn {
+width: 30px; height: 30px; border-radius: var(–radius);
+background: var(–surface3); border: 1px solid var(–border);
+color: var(–text); font-size: 1rem; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s;
+}
+.qty-btn:hover { border-color: var(–gold); color: var(–gold); }
+.qty-display { font-family: var(–font-mono); font-size: 1.1rem; color: var(–gold); min-width: 36px; text-align: center; font-weight: 700; }
+.detail-actions { display: flex; flex-direction: column; gap: 6px; }
 
-  /* PHOTO UPLOAD */
-  .photo-drop {
-    border: 2px dashed var(--border);
-    border-radius: 3px;
-    padding: 32px 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: all .2s;
-    margin-bottom: 16px;
-    position: relative;
-    overflow: hidden;
-  }
-  .photo-drop:hover { border-color: var(--accent); background: rgba(240,192,96,0.03); }
-  .photo-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .photo-drop-icon { font-size: 32px; margin-bottom: 8px; }
-  .photo-drop p { font-size: 12px; color: var(--muted); font-family: var(--font-mono); }
-  .photo-drop strong { color: var(--text); display: block; margin-bottom: 4px; font-size: 14px; font-family: var(--font-body); }
+/* ── DEDUCT UI ── */
+.deduct-ui {
+background: rgba(224,64,64,0.08); border: 1px solid rgba(224,64,64,0.25);
+border-radius: var(–radius); padding: 14px;
+display: flex; flex-direction: column; gap: 10px;
+}
+.deduct-label { font-family: var(–font-mono); font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(–red); }
+.deduct-stock { font-family: var(–font-mono); font-size: 0.7rem; color: var(–text-dim); }
 
-  #photoPreview {
-    width: 100%;
-    border-radius: 3px;
-    margin-bottom: 12px;
-    display: none;
-    max-height: 160px;
-    object-fit: contain;
-    border: 1px solid var(--border);
-  }
+/* ── RIGHT PANEL ── */
+#right-panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.inventory-toolbar {
+display: flex; gap: 10px; align-items: center;
+flex-wrap: wrap;
+}
+.search-wrap { flex: 1; min-width: 200px; position: relative; }
+.search-wrap .text-input { padding-left: 36px; }
+.search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(–text-muted); font-size: 0.85rem; pointer-events: none; }
+.filter-btn {
+font-family: var(–font-mono); font-size: 0.65rem; letter-spacing: 0.08em;
+text-transform: uppercase; padding: 10px 14px;
+background: var(–surface3); border: 1px solid var(–border);
+color: var(–text-dim); border-radius: var(–radius); cursor: pointer;
+transition: all 0.15s; white-space: nowrap;
+}
+.filter-btn.active { background: rgba(224,64,64,0.15); border-color: var(–red); color: var(–red); }
+.filter-btn:hover:not(.active) { border-color: var(–gold); color: var(–gold); }
 
-  /* BUTTONS */
-  .btn {
-    width: 100%;
-    padding: 13px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    transition: all .2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-  .btn-primary { background: var(--accent); color: #000; font-weight: 700; }
-  .btn-primary:hover { background: #f5d080; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(240,192,96,0.3); }
-  .btn-primary:disabled { opacity: .4; cursor: not-allowed; transform: none; box-shadow: none; }
-  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); margin-top: 8px; }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); margin-top: 8px; }
-  .btn-danger:hover { background: rgba(239,68,68,0.1); }
+/* ── INVENTORY GRID ── */
+.inventory-grid {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+gap: 12px;
+}
+.inventory-empty {
+grid-column: 1/-1; text-align: center;
+padding: 60px 20px;
+display: flex; flex-direction: column; align-items: center; gap: 12px;
+}
+.empty-icon { font-size: 3rem; opacity: 0.3; }
+.empty-text { font-family: var(–font-mono); font-size: 0.7rem; color: var(–text-muted); letter-spacing: 0.08em; text-transform: uppercase; }
+.inventory-section-label { font-family: var(–font-mono); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(–text-muted); padding: 0 2px; }
 
-  /* RESULT CARD */
-  #resultCard {
-    display: none;
-    margin-top: 20px;
-    border-top: 1px solid var(--border);
-    padding-top: 20px;
-    animation: slideIn .3s ease;
-  }
-  @keyframes slideIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+/* ── ITEM CARD ── */
+.item-card {
+background: var(–surface); border: 1px solid var(–border);
+border-radius: var(–radius-lg); overflow: hidden; cursor: pointer;
+transition: all 0.15s; position: relative;
+display: flex; flex-direction: column;
+}
+.item-card:hover { border-color: var(–border-accent); transform: translateY(-1px); }
+.item-card.low-stock { border-color: rgba(224,64,64,0.4); }
+.item-card.low-stock:hover { border-color: var(–red); }
+.low-badge {
+position: absolute; top: 8px; left: 8px; z-index: 1;
+font-family: var(–font-mono); font-size: 0.55rem; font-weight: 700;
+letter-spacing: 0.1em; padding: 2px 6px;
+background: var(–red); color: #fff; border-radius: 2px;
+}
+.item-img {
+width: 100%; height: 110px;
+background: var(–surface2);
+display: flex; align-items: center; justify-content: center;
+overflow: hidden;
+}
+.item-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.item-img .img-placeholder { font-size: 2.5rem; opacity: 0.4; }
+.item-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.item-name { font-size: 0.78rem; font-weight: 500; color: var(–text); line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.item-barcode { font-family: var(–font-mono); font-size: 0.55rem; color: var(–text-muted); }
+.item-qty-row { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; }
+.item-qty { font-family: var(–font-mono); font-size: 1.6rem; color: var(–gold); font-weight: 700; line-height: 1; }
+.item-qty-unit { font-family: var(–font-mono); font-size: 0.55rem; color: var(–text-muted); text-transform: uppercase; }
+.item-quick-actions { display: flex; gap: 4px; }
+.quick-btn {
+width: 26px; height: 26px; border-radius: var(–radius);
+background: var(–surface3); border: 1px solid var(–border);
+color: var(–text-dim); font-size: 0.85rem; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s;
+}
+.quick-btn:hover { border-color: var(–gold); color: var(–gold); }
+.quick-btn.del:hover { border-color: var(–red); color: var(–red); }
 
-  .result-img-wrap {
-    width: 100%;
-    height: 160px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 14px;
-    overflow: hidden;
-    position: relative;
-  }
-  .result-img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
-  .result-source {
-    position: absolute;
-    top: 8px; right: 8px;
-    background: rgba(0,0,0,0.7);
-    padding: 3px 8px;
-    border-radius: 2px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--accent);
-    letter-spacing: 1px;
-  }
+/* ── MODAL ── */
+.modal-overlay {
+display: none; position: fixed; inset: 0; z-index: 200;
+background: rgba(14,15,17,0.85); backdrop-filter: blur(8px);
+align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+background: var(–surface); border: 1px solid var(–border-accent);
+border-radius: var(–radius-lg); width: 100%; max-width: 500px;
+max-height: 90vh; overflow-y: auto;
+box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+animation: modal-in 0.2s ease;
+}
+@keyframes modal-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+.modal-header {
+display: flex; align-items: center; justify-content: space-between;
+padding: 20px 20px 16px; border-bottom: 1px solid var(–border);
+flex-shrink: 0;
+}
+.modal-title { font-family: var(–font-display); font-size: 1.2rem; letter-spacing: 0.06em; color: var(–gold); }
+.modal-close {
+width: 32px; height: 32px; border-radius: var(–radius);
+background: transparent; border: 1px solid var(–border);
+color: var(–text-dim); cursor: pointer; font-size: 1rem;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(–red); color: var(–red); }
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { padding: 16px 20px; border-top: 1px solid var(–border); display: flex; gap: 10px; justify-content: flex-end; }
 
-  .result-name {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    line-height: 1.4;
-  }
-  .result-barcode {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 2px;
-    margin-bottom: 10px;
-  }
-  .result-details {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.7;
-    margin-bottom: 14px;
-    background: var(--bg);
-    padding: 10px;
-    border-radius: 3px;
-    border: 1px solid var(--border);
-  }
+/* ── SETTINGS ── */
+.settings-section { display: flex; flex-direction: column; gap: 10px; }
+.settings-section-title { font-family: var(–font-mono); font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(–text-muted); padding-bottom: 8px; border-bottom: 1px solid var(–border); }
+.api-key-wrap { position: relative; }
+.api-key-wrap .text-input { padding-right: 40px; font-size: 0.75rem; }
+.api-toggle {
+position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+background: none; border: none; color: var(–text-dim); cursor: pointer; font-size: 0.8rem;
+}
+.api-status { display: flex; align-items: center; gap: 8px; font-family: var(–font-mono); font-size: 0.65rem; color: var(–text-dim); }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(–text-muted); flex-shrink: 0; }
+.status-dot.valid { background: var(–green); }
+.status-dot.invalid { background: var(–red); }
+.model-cards { display: flex; flex-direction: column; gap: 6px; }
+.model-card {
+display: flex; align-items: flex-start; gap: 10px;
+padding: 10px 12px; border-radius: var(–radius);
+border: 1px solid var(–border); cursor: pointer;
+transition: all 0.15s; background: var(–surface3);
+}
+.model-card:hover { border-color: var(–gold-dim); }
+.model-card input[type=“radio”] { display: none; }
+.model-card.selected { border-color: var(–gold); background: rgba(240,192,96,0.06); }
+.model-card-dot {
+width: 14px; height: 14px; border-radius: 50%;
+border: 2px solid var(–border-accent); flex-shrink: 0; margin-top: 2px;
+transition: all 0.15s;
+}
+.model-card.selected .model-card-dot { border-color: var(–gold); background: var(–gold); }
+.model-card-info { display: flex; flex-direction: column; gap: 2px; }
+.model-card-name { font-family: var(–font-mono); font-size: 0.7rem; color: var(–text); }
+.model-card-id { font-family: var(–font-mono); font-size: 0.58rem; color: var(–text-muted); }
+.settings-link { font-family: var(–font-mono); font-size: 0.62rem; color: var(–gold-dim); text-decoration: none; }
+.settings-link:hover { color: var(–gold); }
+.danger-zone { border: 1px solid rgba(224,64,64,0.3); border-radius: var(–radius); padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.danger-label { font-family: var(–font-mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(–red); }
+.settings-hint { font-size: 0.75rem; color: var(–text-muted); line-height: 1.5; }
 
-  /* QTY INPUT */
-  .qty-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-  .qty-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
-  .qty-controls { display: flex; align-items: center; gap: 6px; flex: 1; }
-  .qty-btn {
-    width: 34px; height: 34px;
-    border: 1px solid var(--border);
-    background: var(--surface2);
-    color: var(--text);
-    border-radius: 3px;
-    cursor: pointer;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all .15s;
-    flex-shrink: 0;
-  }
-  .qty-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .qty-input {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 16px;
-    text-align: center;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .qty-input:focus { border-color: var(--accent); }
+/* ── ITEM DETAIL MODAL ── */
+#item-modal .product-img-area { height: 200px; margin-bottom: 4px; }
 
-  /* DEDUCT MODE */
-  .deduct-mode {
-    background: rgba(239,68,68,0.05);
-    border: 1px solid rgba(239,68,68,0.3);
-    border-radius: 3px;
-    padding: 12px;
-    margin-bottom: 12px;
-    display: none;
-  }
-  .deduct-mode.visible { display: block; }
-  .deduct-label { font-family: var(--font-mono); font-size: 10px; color: var(--danger); letter-spacing: 2px; margin-bottom: 8px; }
-  .deduct-info { font-size: 13px; color: var(--text); margin-bottom: 10px; }
-  .deduct-info strong { color: var(--danger); }
+/* ── TOAST ── */
+#toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+.toast {
+background: var(–surface2); border: 1px solid var(–border-accent);
+border-radius: var(–radius); padding: 12px 16px;
+font-family: var(–font-mono); font-size: 0.7rem; color: var(–text);
+letter-spacing: 0.04em; max-width: 320px;
+animation: toast-in 0.25s ease, toast-out 0.25s ease 2.75s forwards;
+box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.success { border-color: rgba(80,200,120,0.4); color: var(–green); }
+.toast.error { border-color: rgba(224,64,64,0.4); color: var(–red); }
+@keyframes toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+@keyframes toast-out { to { opacity: 0; transform: translateX(20px); } }
 
-  /* LOADING */
-  .loading {
-    display: none;
-    padding: 30px;
-    text-align: center;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 2px;
-  }
-  .loading-bar {
-    height: 2px;
-    background: var(--border);
-    border-radius: 1px;
-    margin: 12px 0;
-    overflow: hidden;
-  }
-  .loading-bar::after {
-    content: '';
-    display: block;
-    height: 100%;
-    background: var(--accent);
-    width: 40%;
-    animation: loading 1.2s ease-in-out infinite;
-  }
-  @keyframes loading { 0%{transform:translateX(-100%)} 100%{transform:translateX(350%)} }
+/* ── VERSION LABEL ── */
+.version-label { font-family: var(–font-mono); font-size: 0.55rem; color: var(–text-muted); letter-spacing: 0.12em; text-transform: uppercase; padding: 8px 20px; border-top: 1px solid var(–border); flex-shrink: 0; }
 
-  /* RIGHT PANEL - INVENTORY */
-  .inventory-panel { display: flex; flex-direction: column; }
+/* ── SELECT ── */
+select.text-input {
+cursor: pointer; appearance: none;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘12’ viewBox=‘0 0 12 12’%3E%3Cpath fill=’%238a8070’ d=‘M6 8L1 3h10z’/%3E%3C/svg%3E”);
+background-repeat: no-repeat; background-position: right 12px center;
+padding-right: 34px;
+}
+select.text-input option { background: var(–surface2); }
 
-  .inventory-toolbar {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    background: var(--surface2);
-  }
-  .search-box {
-    flex: 1;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 8px 14px;
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 13px;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .search-box:focus { border-color: var(--accent); }
-  .search-box::placeholder { color: var(--muted); }
+/* ── NUMBER INPUT ── */
+input[type=“number”].text-input { -moz-appearance: textfield; }
+input[type=“number”].text-input::-webkit-inner-spin-button,
+input[type=“number”].text-input::-webkit-outer-spin-button { -webkit-appearance: none; }
 
-  .filter-btn {
-    padding: 8px 14px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--muted);
-    font-size: 12px;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    letter-spacing: 1px;
-    transition: all .15s;
-    white-space: nowrap;
-  }
-  .filter-btn:hover, .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(240,192,96,0.05); }
-
-  /* INVENTORY GRID */
-  .inventory-grid {
-    padding: 20px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 14px;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  .empty-state {
-    grid-column: 1/-1;
-    padding: 60px 20px;
-    text-align: center;
-    color: var(--muted);
-  }
-  .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: .4; }
-  .empty-state h3 { font-family: var(--font-display); font-size: 24px; letter-spacing: 3px; color: var(--border); margin-bottom: 8px; }
-  .empty-state p { font-size: 13px; font-family: var(--font-mono); }
-
-  /* ITEM CARD */
-  .item-card {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    overflow: hidden;
-    transition: all .2s;
-    cursor: pointer;
-    position: relative;
-    animation: cardIn .3s ease;
-  }
-  @keyframes cardIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
-  .item-card:hover { border-color: var(--accent); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
-  .item-card.low-stock { border-color: rgba(239,68,68,0.4); }
-  .item-card.low-stock::before {
-    content: 'LOW';
-    position: absolute;
-    top: 8px; left: 8px;
-    background: var(--danger);
-    color: #fff;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    padding: 2px 6px;
-    border-radius: 2px;
-    letter-spacing: 1px;
-    z-index: 2;
-  }
-
-  .card-img {
-    width: 100%;
-    height: 120px;
-    object-fit: contain;
-    background: var(--bg);
-    display: block;
-  }
-  .card-img-placeholder {
-    width: 100%;
-    height: 120px;
-    background: var(--bg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 36px;
-    color: var(--border);
-  }
-
-  .card-body { padding: 10px; }
-  .card-name {
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 1.4;
-    margin-bottom: 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  .card-barcode {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-  .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 8px;
-    border-top: 1px solid var(--border);
-  }
-  .card-qty {
-    font-family: var(--font-display);
-    font-size: 22px;
-    color: var(--accent);
-    letter-spacing: 1px;
-    line-height: 1;
-  }
-  .card-qty-label { font-family: var(--font-mono); font-size: 9px; color: var(--muted); }
-  .card-actions { display: flex; gap: 4px; }
-  .card-action-btn {
-    width: 28px; height: 28px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--muted);
-    border-radius: 2px;
-    cursor: pointer;
-    font-size: 14px;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .15s;
-  }
-  .card-action-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .card-action-btn.del:hover { border-color: var(--danger); color: var(--danger); }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(4px);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    width: 90%;
-    max-width: 480px;
-    max-height: 90vh;
-    overflow-y: auto;
-    animation: modalIn .2s ease;
-  }
-  @keyframes modalIn { from{opacity:0;transform:scale(.95) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
-  .modal-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    background: var(--surface2);
-  }
-  .modal-close { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 20px; transition: color .15s; }
-  .modal-close:hover { color: var(--text); }
-  .modal-body { padding: 20px; }
-  .modal-img {
-    width: 100%;
-    height: 200px;
-    object-fit: contain;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    margin-bottom: 16px;
-  }
-  .modal-name { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
-  .modal-barcode { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; margin-bottom: 12px; }
-  .modal-details { font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 16px; }
-  .modal-qty-section { border-top: 1px solid var(--border); padding-top: 16px; }
-  .modal-qty-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--muted); margin-bottom: 10px; }
-
-  /* SETTINGS MODAL */
-  .settings-modal {
-    width: 90%;
-    max-width: 520px;
-  }
-  .settings-section {
-    margin-bottom: 24px;
-  }
-  .settings-section-title {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 3px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 14px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .settings-field {
-    margin-bottom: 14px;
-  }
-  .settings-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  .settings-label a {
-    color: var(--accent2);
-    text-decoration: none;
-    font-size: 10px;
-  }
-  .settings-label a:hover { text-decoration: underline; }
-  .settings-input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 11px 14px;
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 13px;
-    letter-spacing: 1px;
-    outline: none;
-    transition: border-color .2s;
-  }
-  .settings-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(240,192,96,0.1); }
-  .settings-input::placeholder { color: var(--muted); font-size: 11px; }
-
-  .api-key-wrap {
-    position: relative;
-  }
-  .api-key-wrap .settings-input { padding-right: 46px; }
-  .api-key-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 14px;
-    padding: 4px;
-    transition: color .15s;
-  }
-  .api-key-toggle:hover { color: var(--text); }
-
-  .api-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 8px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-  }
-  .api-status-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    flex-shrink: 0;
-  }
-  .api-status-dot.valid { background: var(--success); box-shadow: 0 0 6px var(--success); }
-  .api-status-dot.invalid { background: var(--danger); box-shadow: 0 0 6px var(--danger); }
-  .api-status-dot.checking { background: var(--accent); animation: pulse 1s infinite; }
-
-  .settings-hint {
-    font-size: 12px;
-    color: var(--muted);
-    line-height: 1.6;
-    background: rgba(240,192,96,0.04);
-    border: 1px solid rgba(240,192,96,0.15);
-    border-radius: 3px;
-    padding: 10px 12px;
-    margin-top: 8px;
-  }
-  .settings-hint strong { color: var(--accent); }
-
-  .settings-model-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .model-option {
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 10px 12px;
-    cursor: pointer;
-    transition: all .15s;
-    background: var(--bg);
-  }
-  .model-option:hover { border-color: var(--accent); }
-  .model-option.selected { border-color: var(--accent); background: rgba(240,192,96,0.06); }
-  .model-option input[type=radio] { display: none; }
-  .model-name { font-family: var(--font-mono); font-size: 11px; color: var(--text); margin-bottom: 2px; }
-  .model-desc { font-size: 11px; color: var(--muted); }
-
-  .settings-footer {
-    border-top: 1px solid var(--border);
-    padding: 16px 20px;
-    display: flex;
-    gap: 10px;
-  }
-  .btn-sm {
-    padding: 10px 20px;
-    font-size: 11px;
-  }
-
-  .danger-zone {
-    border: 1px solid rgba(239,68,68,0.2);
-    border-radius: 3px;
-    padding: 14px;
-    background: rgba(239,68,68,0.03);
-  }
-  .danger-zone-title {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--danger);
-    margin-bottom: 10px;
-  }
-  .danger-zone p { font-size: 12px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
-
-  /* API KEY BANNER */
-  .api-banner {
-    display: none;
-    background: rgba(239,68,68,0.08);
-    border-bottom: 1px solid rgba(239,68,68,0.3);
-    padding: 10px 24px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--danger);
-    letter-spacing: 1px;
-    text-align: center;
-    cursor: pointer;
-    transition: background .2s;
-    position: relative;
-    z-index: 99;
-  }
-  .api-banner:hover { background: rgba(239,68,68,0.14); }
-  .api-banner strong { color: #fff; }
-  .api-banner span { text-decoration: underline; margin-left: 6px; }
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    padding: 12px 18px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    letter-spacing: 1px;
-    z-index: 300;
-    display: none;
-    animation: toastIn .2s ease;
-    max-width: 300px;
-  }
-  @keyframes toastIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
-  .toast.success { border-color: var(--success); color: var(--success); }
-  .toast.error { border-color: var(--danger); color: var(--danger); }
-  .toast.info { border-color: var(--accent); color: var(--accent); }
-
-  /* RESPONSIVE */
-  @media (max-width: 768px) {
-    .app { grid-template-columns: 1fr; }
-    .scanner-panel { position: static; }
-    .inventory-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    .header-stats { display: none; }
-  }
+@media (max-width: 900px) {
+.app-layout { grid-template-columns: 1fr; }
+#left-panel { position: relative; height: auto; top: auto; }
+}
 </style>
+
 </head>
 <body>
 
-<div class="api-banner" id="apiBanner" onclick="openSettings()">
-  ⚠ No API key configured — AI lookup is disabled. <strong><span>Click to add your Anthropic API key →</span></strong>
-</div>
+<!-- HEADER -->
 
-<header>
-  <div class="logo">
-    HEIMLAGER
-    <span>HOME STORAGE SYSTEM v1.0</span>
-  </div>
-  <div class="header-right">
-    <div class="header-stats">
-      <div>
-        <strong id="statItems">0</strong>
-        ITEMS
+<header id="header">
+  <div class="header-inner">
+    <div class="logo-block">
+      <span class="logo-text">HEIMLAGER</span>
+      <span class="logo-sub">Home Storage System v2.0</span>
+    </div>
+    <div class="header-divider"></div>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-value" id="stat-items">0</span>
+        <span class="stat-label">Items</span>
       </div>
-      <div>
-        <strong id="statUnits">0</strong>
-        TOTAL UNITS
+      <div class="stat-item">
+        <span class="stat-value" id="stat-units">0</span>
+        <span class="stat-label">Total Units</span>
       </div>
-      <div>
-        <strong id="statLow">0</strong>
-        LOW STOCK
+      <div class="stat-item warn">
+        <span class="stat-value" id="stat-low">0</span>
+        <span class="stat-label">Low Stock</span>
       </div>
     </div>
-    <button class="settings-btn" id="settingsBtn" onclick="openSettings()" title="Settings">⚙</button>
+    <div class="header-actions">
+      <div class="icon-btn" id="settings-btn" title="Settings">
+        <span id="settings-badge" class="badge" style="display:none;"></span>
+        ⚙
+      </div>
+    </div>
   </div>
 </header>
 
-<div class="app">
+<!-- API WARNING BANNER -->
 
-  <!-- LEFT: SCANNER PANEL -->
-  <div class="panel scanner-panel">
+<div id="api-warning" style="display:none;">
+  <span class="warn-icon">⚠</span>
+  <span class="warn-text">No API Key configured — Click to set up</span>
+</div>
+
+<!-- MAIN LAYOUT -->
+
+<div class="app-layout">
+
+  <!-- LEFT PANEL — SCANNER -->
+
+  <aside id="left-panel">
     <div class="panel-header">
-      <div class="dot"></div>
-      SCANNER / LOOKUP
+      <div class="panel-title">SCANNER</div>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="barcode">Barcode</button>
+        <button class="tab-btn" data-tab="camera">Camera</button>
+        <button class="tab-btn" data-tab="search">Search</button>
+      </div>
     </div>
 
-    <div class="mode-tabs">
-      <button class="mode-tab active" onclick="switchMode('barcode')" id="tab-barcode">⬛ BARCODE</button>
-      <button class="mode-tab" onclick="switchMode('photo')" id="tab-photo">📷 PHOTO</button>
-    </div>
-
-    <div class="scanner-body">
-
-      <!-- BARCODE MODE -->
-      <div id="barcodeMode">
-        <div class="scan-input-wrap">
-          <span class="scan-icon">▥</span>
-          <input type="text" class="scan-input" id="barcodeInput"
-            placeholder="SCAN OR TYPE BARCODE..."
-            maxlength="30"
-            oninput="onBarcodeInput(this.value)"
-            onkeydown="if(event.key==='Enter') lookupBarcode()">
-        </div>
-        <button class="btn btn-primary" onclick="lookupBarcode()" id="lookupBtn">
-          ⬛ LOOKUP PRODUCT
-        </button>
-        <button class="btn btn-secondary" onclick="switchToDeductMode()" id="deductBtn" style="display:none">
-          — CONSUME / DEDUCT
-        </button>
-      </div>
-
-      <!-- PHOTO MODE -->
-      <div id="photoMode" style="display:none">
-        <div class="photo-drop" onclick="document.getElementById('photoFile').click()">
-          <input type="file" id="photoFile" accept="image/*" capture="environment" onchange="handlePhoto(this)">
-          <div class="photo-drop-icon">📷</div>
-          <strong>Drop photo or tap to capture</strong>
-          <p>JPEG / PNG · Barcode or product</p>
-        </div>
-        <img id="photoPreview" alt="Preview">
-        <button class="btn btn-primary" onclick="lookupByPhoto()" id="photoLookupBtn" disabled>
-          🔍 IDENTIFY PRODUCT
-        </button>
-      </div>
-
-      <!-- LOADING STATE -->
-      <div class="loading" id="loadingState">
-        <div>SEARCHING DATABASE...</div>
-        <div class="loading-bar"></div>
-        <div id="loadingSource">QUERYING DM.DE / AMAZON.DE</div>
-      </div>
-
-      <!-- RESULT CARD -->
-      <div id="resultCard">
-        <div class="result-img-wrap">
-          <img id="resultImg" src="" alt="" style="display:none">
-          <div id="resultImgPlaceholder" style="font-size:48px;color:var(--border)">📦</div>
-          <span class="result-source" id="resultSource">—</span>
-        </div>
-        <div class="result-name" id="resultName"></div>
-        <div class="result-barcode" id="resultBarcode"></div>
-        <div class="result-details" id="resultDetails"></div>
-
-        <!-- DEDUCT MODE UI -->
-        <div class="deduct-mode" id="deductModeUI">
-          <div class="deduct-label">⬇ CONSUME MODE</div>
-          <div class="deduct-info" id="deductInfo"></div>
-          <div class="qty-row">
-            <span class="qty-label">DEDUCT QTY</span>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="changeDeductQty(-1)">−</button>
-              <input type="number" class="qty-input" id="deductQtyInput" value="1" min="1">
-              <button class="qty-btn" onclick="changeDeductQty(1)">+</button>
-            </div>
-          </div>
-          <button class="btn btn-danger" onclick="confirmDeduct()">— CONFIRM DEDUCTION</button>
-          <button class="btn btn-secondary" onclick="cancelDeduct()">✕ CANCEL</button>
-        </div>
-
-        <!-- ADD MODE UI -->
-        <div id="addModeUI">
-          <div class="qty-row">
-            <span class="qty-label">QUANTITY</span>
-            <div class="qty-controls">
-              <button class="qty-btn" onclick="changeQty(-1)">−</button>
-              <input type="number" class="qty-input" id="qtyInput" value="1" min="1">
-              <button class="qty-btn" onclick="changeQty(1)">+</button>
-            </div>
-          </div>
-          <button class="btn btn-primary" onclick="addToInventory()">＋ ADD TO STORAGE</button>
-          <button class="btn btn-secondary" onclick="clearResult()">✕ CANCEL</button>
-        </div>
-      </div>
-
-    </div>
+```
+<!-- BARCODE TAB -->
+<div class="tab-content active" id="tab-barcode">
+  <div class="input-group">
+    <label class="input-label">Barcode / EAN</label>
+    <input class="text-input" type="text" id="barcode-input" placeholder="Scan or type barcode…" autocomplete="off">
   </div>
 
-  <!-- RIGHT: INVENTORY -->
-  <div class="panel inventory-panel">
-    <div class="panel-header">
-      <div class="dot" style="background:var(--accent2);box-shadow:0 0 8px var(--accent2)"></div>
-      STORAGE INVENTORY
-    </div>
+  <!-- Hidden file input for barcode camera -->
+  <input type="file" accept="image/*" capture="environment" id="barcode-camera-input" class="hidden-input">
+  <label for="barcode-camera-input" class="camera-label-btn">📷 Scan with Camera</label>
+
+  <div class="photo-preview-area" id="barcode-photo-area" style="display:none;">
+    <img id="barcode-photo-preview" src="" alt="Preview">
+    <button class="photo-clear-btn" id="barcode-photo-clear">✕</button>
+  </div>
+
+  <button class="btn btn-primary btn-full" id="barcode-lookup-btn">🔍 Lookup Barcode</button>
+
+  <!-- LOADING -->
+  <div class="loading-area" id="barcode-loading">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="barcode-progress"></div></div>
+    <span class="loading-status" id="barcode-status">Identifying product…</span>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-area" id="barcode-results"></div>
+
+  <!-- CONFIRM -->
+  <button class="btn btn-primary btn-full" id="barcode-confirm-btn" disabled style="display:none;">✓ Confirm Selection</button>
+
+  <!-- PRODUCT DETAIL -->
+  <div class="product-detail" id="barcode-detail"></div>
+</div>
+
+<!-- CAMERA TAB -->
+<div class="tab-content" id="tab-camera">
+  <div style="display:flex;gap:8px;">
+    <input type="file" accept="image/*" capture="environment" id="camera-capture-input" class="hidden-input">
+    <label for="camera-capture-input" class="camera-label-btn" style="flex:1;">📷 Open Camera</label>
+    <input type="file" accept="image/*" id="gallery-input" class="hidden-input">
+    <label for="gallery-input" class="camera-label-btn" style="flex:1;">🖼 From Gallery</label>
+  </div>
+
+  <div class="photo-preview-area" id="camera-photo-area">
+    <div class="photo-placeholder">Take or select a photo<br>to identify product</div>
+    <button class="photo-clear-btn" id="camera-photo-clear" style="display:none;">✕</button>
+  </div>
+  <img id="camera-photo-preview" src="" alt="" style="display:none;">
+
+  <button class="btn btn-primary btn-full" id="camera-identify-btn" disabled>🔎 Identify Product</button>
+
+  <div class="loading-area" id="camera-loading">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="camera-progress"></div></div>
+    <span class="loading-status" id="camera-status">Analyzing photo…</span>
+  </div>
+
+  <div class="results-area" id="camera-results"></div>
+  <button class="btn btn-primary btn-full" id="camera-confirm-btn" disabled style="display:none;">✓ Confirm Selection</button>
+  <div class="product-detail" id="camera-detail"></div>
+</div>
+
+<!-- SEARCH TAB -->
+<div class="tab-content" id="tab-search">
+  <div class="input-group">
+    <label class="input-label">Product Name</label>
+    <input class="text-input" type="text" id="search-input" placeholder="e.g. Persil Color Gel 1.5L…">
+  </div>
+  <button class="btn btn-primary btn-full" id="search-btn">🔍 Search Products</button>
+
+  <div class="loading-area" id="search-loading">
+    <div class="loading-bar-track"><div class="loading-bar-fill" id="search-progress"></div></div>
+    <span class="loading-status" id="search-status">Searching…</span>
+  </div>
+
+  <div class="results-area" id="search-results"></div>
+  <button class="btn btn-primary btn-full" id="search-confirm-btn" disabled style="display:none;">✓ Confirm Selection</button>
+  <div class="product-detail" id="search-detail"></div>
+</div>
+
+<div class="version-label">HEIMLAGER v2.0 — All data stored locally</div>
+```
+
+  </aside>
+
+  <!-- RIGHT PANEL — INVENTORY -->
+
+  <main id="right-panel">
     <div class="inventory-toolbar">
-      <input type="text" class="search-box" placeholder="Search by name or barcode..." oninput="filterInventory(this.value)" id="inventorySearch">
-      <button class="filter-btn" onclick="filterLow()" id="lowBtn">⚠ LOW STOCK</button>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="text-input" type="text" id="inv-search" placeholder="Filter by name or barcode…">
+      </div>
+      <button class="filter-btn" id="low-stock-filter">⚠ Low Stock</button>
     </div>
-    <div class="inventory-grid" id="inventoryGrid">
-      <div class="empty-state">
+    <div class="inventory-grid" id="inventory-grid">
+      <div class="inventory-empty">
         <div class="empty-icon">📦</div>
-        <h3>LAGER LEER</h3>
-        <p>Scan a barcode or take a photo<br>to add your first item</p>
+        <div class="empty-text">No items in storage</div>
       </div>
     </div>
-  </div>
+  </main>
 
 </div>
 
-<!-- DETAIL MODAL -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+<!-- ══ SETTINGS MODAL ══ -->
+
+<div class="modal-overlay" id="settings-modal">
   <div class="modal">
     <div class="modal-header">
-      ITEM DETAIL
-      <button class="modal-close" onclick="closeModalDirect()">✕</button>
+      <span class="modal-title">SETTINGS</span>
+      <button class="modal-close" id="settings-close">✕</button>
     </div>
     <div class="modal-body">
-      <img class="modal-img" id="modalImg" src="" alt="">
-      <div class="modal-name" id="modalName"></div>
-      <div class="modal-barcode" id="modalBarcode"></div>
-      <div class="modal-details" id="modalDetails"></div>
-      <div class="modal-qty-section">
-        <div class="modal-qty-title">ADJUST QUANTITY</div>
-        <div class="qty-row">
-          <div class="qty-controls">
-            <button class="qty-btn" onclick="modalChangeQty(-1)">−</button>
-            <input type="number" class="qty-input" id="modalQtyInput" value="1" min="0">
-            <button class="qty-btn" onclick="modalChangeQty(1)">+</button>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="updateModalQty()" style="margin-top:8px">✓ UPDATE QUANTITY</button>
-        <button class="btn btn-danger" onclick="deleteModalItem()" style="margin-top:8px">🗑 REMOVE FROM STORAGE</button>
-      </div>
+
+```
+  <div class="settings-section">
+    <div class="settings-section-title">API Key</div>
+    <div class="api-key-wrap">
+      <input class="text-input" type="password" id="api-key-input" placeholder="sk-ant-api03-…" autocomplete="off">
+      <button class="api-toggle" id="api-key-toggle">👁</button>
     </div>
+    <div class="api-status">
+      <span class="status-dot" id="api-status-dot"></span>
+      <span id="api-status-text">No key entered</span>
+    </div>
+    <a href="https://console.anthropic.com/account/keys" target="_blank" class="settings-link">↗ Get your key at console.anthropic.com</a>
+    <p class="settings-hint">Your API key is stored only in your browser's localStorage and is never transmitted anywhere except directly to the Anthropic API.</p>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Model</div>
+    <div class="model-cards" id="model-cards">
+      <label class="model-card" data-model="claude-sonnet-4-20250514">
+        <div class="model-card-dot"></div>
+        <div class="model-card-info">
+          <span class="model-card-name">Sonnet 4</span>
+          <span class="model-card-id">claude-sonnet-4-20250514</span>
+        </div>
+      </label>
+      <label class="model-card" data-model="claude-opus-4-5">
+        <div class="model-card-dot"></div>
+        <div class="model-card-info">
+          <span class="model-card-name">Opus 4.5</span>
+          <span class="model-card-id">claude-opus-4-5</span>
+        </div>
+      </label>
+      <label class="model-card" data-model="claude-haiku-4-5-20251001">
+        <div class="model-card-dot"></div>
+        <div class="model-card-info">
+          <span class="model-card-name">Haiku 4.5</span>
+          <span class="model-card-id">claude-haiku-4-5-20251001</span>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Preferred Store</div>
+    <select class="text-input" id="store-pref">
+      <option value="auto">dm.de + amazon.de (auto)</option>
+      <option value="dm">dm.de only</option>
+      <option value="amazon">amazon.de only</option>
+    </select>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Low Stock Threshold</div>
+    <input class="text-input" type="number" id="low-threshold" min="1" max="99" value="3">
+    <p class="settings-hint">Items with quantity at or below this value are flagged as low stock.</p>
+  </div>
+
+  <div class="settings-section">
+    <div class="settings-section-title">Danger Zone</div>
+    <div class="danger-zone">
+      <span class="danger-label">⚠ Irreversible actions</span>
+      <button class="btn btn-danger" id="clear-inventory-btn">🗑 Clear All Inventory</button>
+    </div>
+  </div>
+
+</div>
+<div class="modal-footer">
+  <button class="btn btn-ghost" id="settings-cancel-btn">Cancel</button>
+  <button class="btn btn-primary" id="settings-save-btn">Save Settings</button>
+</div>
+```
+
   </div>
 </div>
 
+<!-- ══ ITEM DETAIL MODAL ══ -->
 
-<!-- SETTINGS MODAL -->
-<div class="modal-overlay" id="settingsOverlay" onclick="closeSettingsModal(event)">
-  <div class="modal settings-modal">
+<div class="modal-overlay" id="item-modal">
+  <div class="modal" id="item-modal-content">
     <div class="modal-header">
-      ⚙ SETTINGS
-      <button class="modal-close" onclick="closeSettingsDirect()">✕</button>
+      <span class="modal-title" id="item-modal-title">ITEM DETAILS</span>
+      <button class="modal-close" id="item-modal-close">✕</button>
     </div>
-    <div class="modal-body">
-
-      <!-- API KEY SECTION -->
-      <div class="settings-section">
-        <div class="settings-section-title">🔑 ANTHROPIC API KEY</div>
-        <div class="settings-field">
-          <div class="settings-label">
-            API KEY
-            <a href="https://console.anthropic.com/account/keys" target="_blank">Get key at console.anthropic.com →</a>
-          </div>
-          <div class="api-key-wrap">
-            <input type="password" class="settings-input" id="apiKeyInput"
-              placeholder="sk-ant-api03-..."
-              oninput="onApiKeyInput(this.value)">
-            <button class="api-key-toggle" onclick="toggleApiKeyVisibility()" id="apiKeyToggle" title="Show/hide key">👁</button>
-          </div>
-          <div class="api-status" id="apiStatus">
-            <div class="api-status-dot" id="apiStatusDot"></div>
-            <span id="apiStatusText">No key configured</span>
-          </div>
-          <div class="settings-hint">
-            Your API key is stored <strong>locally in your browser only</strong> and never sent anywhere except directly to Anthropic's API for product lookups. It is never logged or shared.
-          </div>
-        </div>
-      </div>
-
-      <!-- MODEL SECTION -->
-      <div class="settings-section">
-        <div class="settings-section-title">🤖 AI MODEL</div>
-        <div class="settings-model-grid" id="modelGrid">
-          <label class="model-option selected" onclick="selectModel('claude-sonnet-4-20250514', this)">
-            <input type="radio" name="model" value="claude-sonnet-4-20250514" checked>
-            <div class="model-name">Sonnet 4</div>
-            <div class="model-desc">Best balance of speed & accuracy</div>
-          </label>
-          <label class="model-option" onclick="selectModel('claude-opus-4-5', this)">
-            <input type="radio" name="model" value="claude-opus-4-5">
-            <div class="model-name">Opus 4.5</div>
-            <div class="model-desc">Most powerful, slower</div>
-          </label>
-          <label class="model-option" onclick="selectModel('claude-haiku-4-5-20251001', this)">
-            <input type="radio" name="model" value="claude-haiku-4-5-20251001">
-            <div class="model-name">Haiku 4.5</div>
-            <div class="model-desc">Fastest, lightweight</div>
-          </label>
-        </div>
-      </div>
-
-      <!-- LOOKUP PREFERENCES -->
-      <div class="settings-section">
-        <div class="settings-section-title">🔍 LOOKUP PREFERENCES</div>
-        <div class="settings-field">
-          <div class="settings-label">PREFERRED STORE</div>
-          <select class="settings-input" id="preferredStore">
-            <option value="both">dm.de + amazon.de (Auto)</option>
-            <option value="dm">dm.de only</option>
-            <option value="amazon">amazon.de only</option>
-          </select>
-        </div>
-        <div class="settings-field">
-          <div class="settings-label">LOW STOCK THRESHOLD</div>
-          <input type="number" class="settings-input" id="lowStockThreshold" value="2" min="1" max="20" style="width:120px">
-        </div>
-      </div>
-
-      <!-- DANGER ZONE -->
-      <div class="settings-section">
-        <div class="settings-section-title" style="color:var(--danger)">⚠ DANGER ZONE</div>
-        <div class="danger-zone">
-          <div class="danger-zone-title">CLEAR ALL DATA</div>
-          <p>This will permanently delete your entire inventory and all settings. This action cannot be undone.</p>
-          <button class="btn btn-danger btn-sm" onclick="clearAllData()" style="width:auto;padding:10px 20px">🗑 CLEAR ALL INVENTORY</button>
-        </div>
-      </div>
-
-    </div>
-    <div class="settings-footer">
-      <button class="btn btn-primary btn-sm" onclick="saveSettings()" style="width:auto">✓ SAVE SETTINGS</button>
-      <button class="btn btn-secondary btn-sm" onclick="closeSettingsDirect()" style="width:auto">✕ CANCEL</button>
+    <div class="modal-body" id="item-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="item-modal-remove">Remove from Storage</button>
+      <button class="btn btn-primary" id="item-modal-update">Update Quantity</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+<!-- TOAST CONTAINER -->
+
+<div id="toast-container"></div>
 
 <script>
-// ─── STATE ───────────────────────────────────────────────────────
-let inventory = JSON.parse(localStorage.getItem('heimlager_inventory') || '[]');
-let settings = JSON.parse(localStorage.getItem('heimlager_settings') || '{}');
-let currentResult = null;
-let currentMode = 'add'; // 'add' or 'deduct'
-let modalItemBarcode = null;
-let photoBase64 = null;
-let lowFilter = false;
-let selectedModel = settings.model || 'claude-sonnet-4-20250514';
+// ══════════════════════════════════════════════
+//  STATE & PERSISTENCE
+// ══════════════════════════════════════════════
+const SETTINGS_KEY = 'heimlager_settings';
+const INVENTORY_KEY = 'heimlager_inventory';
 
-// ─── INIT ────────────────────────────────────────────────────────
-renderInventory();
-updateStats();
-initSettings();
+let settings = {
+  apiKey: '',
+  model: 'claude-sonnet-4-20250514',
+  store: 'auto',
+  lowThreshold: 3
+};
 
-// ─── SETTINGS INIT ───────────────────────────────────────────────
-function initSettings() {
-  const hasKey = !!(settings.apiKey);
-  const banner = document.getElementById('apiBanner');
-  const btn = document.getElementById('settingsBtn');
-  banner.style.display = hasKey ? 'none' : 'block';
-  btn.classList.toggle('no-key', !hasKey);
+let inventory = []; // [{id, barcode, name, brand, details, source, imageUrl, qty, addedAt}]
+
+function loadSettings() {
+  try { const s = JSON.parse(localStorage.getItem(SETTINGS_KEY)); if (s) settings = {...settings, ...s}; } catch(e){}
+}
+function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+function loadInventory() {
+  try { const i = JSON.parse(localStorage.getItem(INVENTORY_KEY)); if (Array.isArray(i)) inventory = i; } catch(e){}
+}
+function saveInventory() { localStorage.setItem(INVENTORY_KEY, JSON.stringify(inventory)); }
+
+// ══════════════════════════════════════════════
+//  UTILITY
+// ══════════════════════════════════════════════
+function showToast(msg, type='') {
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' '+type : '');
+  el.textContent = msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(() => el.remove(), 3200);
 }
 
-function openSettings() {
-  const overlay = document.getElementById('settingsOverlay');
-  overlay.classList.add('open');
+function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 
-  // Populate fields
-  const keyInput = document.getElementById('apiKeyInput');
-  keyInput.value = settings.apiKey || '';
-  updateApiStatusUI(settings.apiKey);
+function getItemByBarcode(bc) { return inventory.find(i => i.barcode === bc); }
 
-  const store = document.getElementById('preferredStore');
-  store.value = settings.preferredStore || 'both';
+// ══════════════════════════════════════════════
+//  HEADER / STATS / WARNINGS
+// ══════════════════════════════════════════════
+function updateStats() {
+  const items = inventory.length;
+  const units = inventory.reduce((a,b) => a + (b.qty||0), 0);
+  const low = inventory.filter(i => i.qty <= settings.lowThreshold).length;
+  document.getElementById('stat-items').textContent = items;
+  document.getElementById('stat-units').textContent = units;
+  document.getElementById('stat-low').textContent = low;
+}
 
-  const threshold = document.getElementById('lowStockThreshold');
-  threshold.value = settings.lowStockThreshold || 2;
+function updateApiWarning() {
+  const hasKey = settings.apiKey && settings.apiKey.startsWith('sk-ant-');
+  document.getElementById('api-warning').style.display = hasKey ? 'none' : 'flex';
+  document.getElementById('settings-badge').style.display = hasKey ? 'none' : 'block';
+}
 
-  // Model selection
-  selectedModel = settings.model || 'claude-sonnet-4-20250514';
-  document.querySelectorAll('.model-option').forEach(opt => {
-    const val = opt.querySelector('input').value;
-    opt.classList.toggle('selected', val === selectedModel);
+// ══════════════════════════════════════════════
+//  API CALL
+// ══════════════════════════════════════════════
+async function callClaude(messages, model, tools) {
+  if (!settings.apiKey) throw new Error('NO_API_KEY');
+  const body = { model, max_tokens: 2000, messages };
+  if (tools) body.tools = tools;
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': settings.apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) {
+    const err = await resp.json().catch(()=>({error:{message:resp.statusText}}));
+    throw new Error(err?.error?.message || resp.statusText);
+  }
+  return resp.json();
+}
+
+function extractText(data) {
+  return (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+}
+
+function parseJSON(text) {
+  // Strip markdown fences
+  const clean = text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+  // Find first [ or {
+  const start = clean.search(/[\[{]/);
+  if (start < 0) throw new Error('No JSON found');
+  return JSON.parse(clean.slice(start));
+}
+
+// ══════════════════════════════════════════════
+//  IMAGE URL FETCHING (Haiku + web_search tool)
+// ══════════════════════════════════════════════
+async function fetchImageUrl(imageQuery) {
+  try {
+    const data = await callClaude([{
+      role: 'user',
+      content: `Find a product image URL for: "${imageQuery}". Return ONLY a direct image URL (ending in .jpg, .jpeg, .png, .webp, or similar). No explanation, just the URL.`
+    }], 'claude-haiku-4-5-20251001', [{
+      type: 'web_search_20250305',
+      name: 'web_search'
+    }]);
+    const text = extractText(data).trim();
+    const urlMatch = text.match(/https?:\/\/[^\s"'<>]+\.(jpg|jpeg|png|webp|gif)(\?[^\s"'<>]*)?/i);
+    return urlMatch ? urlMatch[0] : '';
+  } catch(e) { return ''; }
+}
+
+// ══════════════════════════════════════════════
+//  PRODUCT LOOKUP — TEXT/BARCODE
+// ══════════════════════════════════════════════
+function buildStoreHint() {
+  if (settings.store === 'dm') return 'Focus on dm.de products.';
+  if (settings.store === 'amazon') return 'Focus on amazon.de products.';
+  return 'Prefer dm.de and amazon.de sources.';
+}
+
+async function lookupProduct(query, isBarcode) {
+  const prompt = isBarcode
+    ? `Identify the product with barcode/EAN: "${query}". ${buildStoreHint()} Return a JSON array of 1-3 results. Each result: { "name": string, "barcode": string, "brand": string, "details": "2-3 sentences about product", "source": "dm.de or amazon.de", "imageQuery": "5-7 word search query for product image" }. Return ONLY valid JSON array, no other text.`
+    : `Search for the product: "${query}". ${buildStoreHint()} Return a JSON array of 1-3 results. Each result: { "name": string, "barcode": string (best guess EAN or empty), "brand": string, "details": "2-3 sentences about product", "source": "dm.de or amazon.de", "imageQuery": "5-7 word search query for product image" }. Return ONLY valid JSON array, no other text.`;
+
+  const data = await callClaude([{role:'user',content:prompt}], settings.model);
+  const text = extractText(data);
+  return parseJSON(text);
+}
+
+// ══════════════════════════════════════════════
+//  PRODUCT LOOKUP — PHOTO
+// ══════════════════════════════════════════════
+async function identifyFromPhoto(b64, mime, isBarcode) {
+  const prompt = isBarcode
+    ? `Read the barcode/EAN from this image, then identify the product. ${buildStoreHint()} Return a JSON array of 1-3 results: { "name": string, "barcode": string, "brand": string, "details": "2-3 sentences", "source": "dm.de or amazon.de", "imageQuery": "5-7 word search query" }. ONLY JSON array.`
+    : `Identify the product(s) shown in this photo. ${buildStoreHint()} Return a JSON array of 1-3 results: { "name": string, "barcode": string, "brand": string, "details": "2-3 sentences", "source": "dm.de or amazon.de", "imageQuery": "5-7 word search query" }. ONLY JSON array.`;
+
+  const data = await callClaude([{role:'user',content:[
+    {type:'image', source:{type:'base64', media_type:mime, data:b64}},
+    {type:'text', text:prompt}
+  ]}], settings.model);
+  return parseJSON(extractText(data));
+}
+
+// ══════════════════════════════════════════════
+//  LOADING HELPERS
+// ══════════════════════════════════════════════
+function setLoading(prefix, active, statusText='') {
+  const area = document.getElementById(prefix+'-loading');
+  const bar = document.getElementById(prefix+'-progress');
+  const status = document.getElementById(prefix+'-status');
+  area.classList.toggle('active', active);
+  if (statusText) status.textContent = statusText;
+  if (active) { bar.style.width='0%'; setTimeout(()=>bar.style.width='60%',100); }
+  else { bar.style.width='100%'; }
+}
+
+// ══════════════════════════════════════════════
+//  RESULTS RENDERING
+// ══════════════════════════════════════════════
+let selectedResult = {}; // keyed by tab
+
+async function renderResults(prefix, results) {
+  const area = document.getElementById(prefix+'-results');
+  const confirmBtn = document.getElementById(prefix+'-confirm-btn');
+  selectedResult[prefix] = null;
+
+  area.innerHTML = '<span class="results-label">'+results.length+' result'+(results.length!==1?'s':'')+' found</span>';
+  area.classList.add('active');
+  confirmBtn.style.display='flex';
+  confirmBtn.disabled = true;
+
+  for (const r of results) {
+    const card = document.createElement('div');
+    card.className = 'result-card';
+    card.dataset.barcode = r.barcode || '';
+
+    const thumb = document.createElement('div');
+    thumb.className = 'result-thumb';
+    thumb.textContent = '📦';
+
+    const info = document.createElement('div');
+    info.className = 'result-info';
+    info.innerHTML = `<div class="result-name">${r.name}</div><div class="result-barcode">${r.barcode||'—'}</div>`;
+
+    const badge = document.createElement('div');
+    badge.className = 'source-badge';
+    badge.textContent = r.source||'—';
+
+    card.appendChild(thumb);
+    card.appendChild(info);
+    card.appendChild(badge);
+    area.appendChild(card);
+
+    card.addEventListener('click', () => {
+      area.querySelectorAll('.result-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedResult[prefix] = r;
+      confirmBtn.disabled = false;
+    });
+
+    // Async image load
+    if (r.imageQuery) {
+      fetchImageUrl(r.imageQuery).then(url => {
+        if (url) {
+          r.imageUrl = url;
+          const img = document.createElement('img');
+          img.src = url;
+          img.onerror = () => { thumb.innerHTML = '📦'; };
+          thumb.innerHTML = '';
+          thumb.appendChild(img);
+        }
+      });
+    }
+  }
+}
+
+// ══════════════════════════════════════════════
+//  PRODUCT DETAIL CARD
+// ══════════════════════════════════════════════
+let detailQty = {}; // keyed by tab
+let deductMode = {}; // keyed by tab
+let deductQty = {};
+
+function renderDetailCard(prefix, product) {
+  const container = document.getElementById(prefix+'-detail');
+  detailQty[prefix] = 1;
+  deductMode[prefix] = false;
+  deductQty[prefix] = 1;
+  const existing = getItemByBarcode(product.barcode);
+
+  container.innerHTML = '';
+  container.classList.add('active');
+
+  // Image
+  const imgArea = document.createElement('div');
+  imgArea.className = 'product-img-area';
+  if (product.imageUrl) {
+    const img = document.createElement('img');
+    img.src = product.imageUrl;
+    img.onerror = () => { imgArea.innerHTML = '<span class="product-img-placeholder">📦</span>'; };
+    imgArea.appendChild(img);
+  } else {
+    imgArea.innerHTML = '<span class="product-img-placeholder">📦</span>';
+  }
+
+  // Meta
+  const meta = document.createElement('div');
+  meta.className = 'product-meta';
+  meta.innerHTML = `
+    <div class="product-name-large">${product.name}</div>
+    ${product.brand ? `<div class="product-brand">${product.brand}</div>` : ''}
+    <div class="product-barcode-display">${product.barcode||'No barcode'}</div>
+  `;
+
+  const details = document.createElement('p');
+  details.className = 'product-details-text';
+  details.textContent = product.details||'';
+
+  const badge = document.createElement('div');
+  badge.innerHTML = `<span class="source-badge">${product.source||''}</span>`;
+
+  // Qty editor
+  const qtyEditorEl = document.createElement('div');
+  qtyEditorEl.className = 'qty-editor';
+  const qtyLabel = document.createElement('span');
+  qtyLabel.className = 'qty-editor-label';
+  qtyLabel.textContent = existing ? `Current Stock: ${existing.qty} — Add:` : 'Quantity to add:';
+  const qtyControls = document.createElement('div');
+  qtyControls.className = 'qty-controls';
+  const qtyMinus = document.createElement('button');
+  qtyMinus.className = 'qty-btn'; qtyMinus.textContent = '−';
+  const qtyDisp = document.createElement('span');
+  qtyDisp.className = 'qty-display'; qtyDisp.textContent = '1';
+  const qtyPlus = document.createElement('button');
+  qtyPlus.className = 'qty-btn'; qtyPlus.textContent = '+';
+
+  qtyMinus.onclick = () => { if (detailQty[prefix]>1) { detailQty[prefix]--; qtyDisp.textContent=detailQty[prefix]; } };
+  qtyPlus.onclick = () => { detailQty[prefix]++; qtyDisp.textContent=detailQty[prefix]; };
+  qtyControls.append(qtyMinus, qtyDisp, qtyPlus);
+  qtyEditorEl.append(qtyLabel, qtyControls);
+
+  // Actions
+  const actions = document.createElement('div');
+  actions.className = 'detail-actions';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn btn-primary btn-full';
+  addBtn.textContent = existing ? '+ Add to Existing Stock' : '+ Add to Storage';
+  addBtn.onclick = () => {
+    addOrUpdateItem(product, detailQty[prefix]);
+    container.classList.remove('active');
+    container.innerHTML = '';
+    document.getElementById(prefix+'-results').classList.remove('active');
+    document.getElementById(prefix+'-results').innerHTML = '';
+    document.getElementById(prefix+'-confirm-btn').style.display='none';
+    renderInventory();
+    updateStats();
+    showToast('Added to storage: '+product.name, 'success');
+  };
+
+  const cancelBtn = document.createElement('button');
+  cancelBtn.className = 'btn btn-ghost btn-full';
+  cancelBtn.textContent = 'Cancel';
+  cancelBtn.onclick = () => {
+    container.classList.remove('active');
+    container.innerHTML = '';
+    document.getElementById(prefix+'-confirm-btn').style.display='none';
+    selectedResult[prefix] = null;
+    document.getElementById(prefix+'-results').classList.remove('active');
+    document.getElementById(prefix+'-results').innerHTML = '';
+  };
+
+  actions.append(addBtn);
+
+  // Deduct button (only if exists)
+  if (existing) {
+    const deductBtn = document.createElement('button');
+    deductBtn.className = 'btn btn-secondary btn-full';
+    deductBtn.textContent = '− Consume / Deduct';
+
+    const deductUI = document.createElement('div');
+    deductUI.className = 'deduct-ui';
+    deductUI.style.display = 'none';
+
+    const deductLbl = document.createElement('div');
+    deductLbl.className = 'deduct-label';
+    deductLbl.textContent = '⊖ DEDUCT FROM STOCK';
+    const deductStock = document.createElement('div');
+    deductStock.className = 'deduct-stock';
+    deductStock.textContent = 'Current stock: '+existing.qty;
+    const deductQtyRow = document.createElement('div');
+    deductQtyRow.className = 'qty-editor';
+    const dLabel = document.createElement('span');
+    dLabel.className = 'qty-editor-label';
+    dLabel.textContent = 'Qty to deduct:';
+    const dControls = document.createElement('div');
+    dControls.className = 'qty-controls';
+    const dMinus = document.createElement('button');
+    dMinus.className = 'qty-btn'; dMinus.textContent = '−';
+    const dDisp = document.createElement('span');
+    dDisp.className = 'qty-display'; dDisp.textContent = '1';
+    const dPlus = document.createElement('button');
+    dPlus.className = 'qty-btn'; dPlus.textContent = '+';
+    dMinus.onclick = () => { if (deductQty[prefix]>1){ deductQty[prefix]--; dDisp.textContent=deductQty[prefix]; } };
+    dPlus.onclick = () => { if (deductQty[prefix]<existing.qty){ deductQty[prefix]++; dDisp.textContent=deductQty[prefix]; } };
+    dControls.append(dMinus, dDisp, dPlus);
+    deductQtyRow.append(dLabel, dControls);
+
+    const confirmDeduct = document.createElement('button');
+    confirmDeduct.className = 'btn btn-danger btn-full';
+    confirmDeduct.textContent = '✓ Confirm Deduction';
+    confirmDeduct.onclick = () => {
+      deductItem(product.barcode, deductQty[prefix]);
+      container.classList.remove('active');
+      container.innerHTML = '';
+      document.getElementById(prefix+'-results').classList.remove('active');
+      document.getElementById(prefix+'-results').innerHTML = '';
+      document.getElementById(prefix+'-confirm-btn').style.display='none';
+      renderInventory(); updateStats();
+      showToast('Stock updated', 'success');
+    };
+
+    const cancelDeduct = document.createElement('button');
+    cancelDeduct.className = 'btn btn-ghost btn-full';
+    cancelDeduct.textContent = 'Cancel Deduction';
+    cancelDeduct.onclick = () => { deductUI.style.display='none'; deductBtn.style.display=''; addBtn.style.display=''; };
+
+    deductUI.append(deductLbl, deductStock, deductQtyRow, confirmDeduct, cancelDeduct);
+
+    deductBtn.onclick = () => {
+      deductUI.style.display = 'flex';
+      deductUI.style.flexDirection = 'column';
+      deductUI.style.gap = '8px';
+      deductBtn.style.display = 'none';
+      addBtn.style.display = 'none';
+    };
+
+    actions.append(deductBtn, deductUI);
+  }
+
+  actions.append(cancelBtn);
+
+  container.append(imgArea, meta, details, badge, qtyEditorEl, actions);
+}
+
+// ══════════════════════════════════════════════
+//  INVENTORY OPERATIONS
+// ══════════════════════════════════════════════
+function addOrUpdateItem(product, qty) {
+  const existing = getItemByBarcode(product.barcode);
+  if (existing) {
+    existing.qty += qty;
+    if (product.imageUrl && !existing.imageUrl) existing.imageUrl = product.imageUrl;
+  } else {
+    inventory.push({
+      id: genId(),
+      barcode: product.barcode || '',
+      name: product.name,
+      brand: product.brand || '',
+      details: product.details || '',
+      source: product.source || '',
+      imageUrl: product.imageUrl || '',
+      qty,
+      addedAt: Date.now()
+    });
+  }
+  saveInventory();
+}
+
+function deductItem(barcode, qty) {
+  const item = getItemByBarcode(barcode);
+  if (!item) return;
+  item.qty -= qty;
+  if (item.qty <= 0) inventory = inventory.filter(i => i.barcode !== barcode);
+  saveInventory();
+}
+
+function removeItem(id) {
+  inventory = inventory.filter(i => i.id !== id);
+  saveInventory();
+}
+
+// ══════════════════════════════════════════════
+//  INVENTORY RENDERING
+// ══════════════════════════════════════════════
+let invFilter = '';
+let lowFilter = false;
+
+function renderInventory() {
+  const grid = document.getElementById('inventory-grid');
+  grid.innerHTML = '';
+  let items = [...inventory];
+  if (invFilter) {
+    const q = invFilter.toLowerCase();
+    items = items.filter(i => i.name.toLowerCase().includes(q) || i.barcode.includes(q));
+  }
+  if (lowFilter) items = items.filter(i => i.qty <= settings.lowThreshold);
+
+  if (!items.length) {
+    grid.innerHTML = '<div class="inventory-empty"><div class="empty-icon">📦</div><div class="empty-text">'+(inventory.length?'No matching items':'No items in storage')+'</div></div>';
+    return;
+  }
+
+  items.forEach(item => {
+    const isLow = item.qty <= settings.lowThreshold;
+    const card = document.createElement('div');
+    card.className = 'item-card' + (isLow?' low-stock':'');
+
+    if (isLow) {
+      const badge = document.createElement('div');
+      badge.className = 'low-badge'; badge.textContent = 'LOW';
+      card.appendChild(badge);
+    }
+
+    const imgDiv = document.createElement('div');
+    imgDiv.className = 'item-img';
+    if (item.imageUrl) {
+      const img = document.createElement('img');
+      img.src = item.imageUrl;
+      img.onerror = () => { imgDiv.innerHTML = '<span class="img-placeholder">📦</span>'; };
+      imgDiv.appendChild(img);
+    } else {
+      imgDiv.innerHTML = '<span class="img-placeholder">📦</span>';
+    }
+
+    const body = document.createElement('div');
+    body.className = 'item-body';
+
+    const name = document.createElement('div');
+    name.className = 'item-name'; name.textContent = item.name;
+
+    const bc = document.createElement('div');
+    bc.className = 'item-barcode'; bc.textContent = item.barcode||'—';
+
+    const qtyRow = document.createElement('div');
+    qtyRow.className = 'item-qty-row';
+
+    const qtyWrap = document.createElement('div');
+    const qtyNum = document.createElement('div');
+    qtyNum.className = 'item-qty'; qtyNum.textContent = item.qty;
+    const qtyUnit = document.createElement('div');
+    qtyUnit.className = 'item-qty-unit'; qtyUnit.textContent = 'units';
+    qtyWrap.append(qtyNum, qtyUnit);
+
+    const actions = document.createElement('div');
+    actions.className = 'item-quick-actions';
+
+    const plusBtn = document.createElement('button');
+    plusBtn.className = 'quick-btn'; plusBtn.textContent = '+';
+    plusBtn.title = 'Add one';
+    plusBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      item.qty++; saveInventory(); renderInventory(); updateStats();
+    });
+
+    const minusBtn = document.createElement('button');
+    minusBtn.className = 'quick-btn'; minusBtn.textContent = '−';
+    minusBtn.title = 'Remove one';
+    minusBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      item.qty--;
+      if (item.qty <= 0) inventory = inventory.filter(i=>i.id!==item.id);
+      saveInventory(); renderInventory(); updateStats();
+    });
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'quick-btn del'; delBtn.textContent = '✕';
+    delBtn.title = 'Delete';
+    delBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (confirm('Remove "'+item.name+'" from storage?')) {
+        removeItem(item.id); renderInventory(); updateStats();
+        showToast('Removed: '+item.name);
+      }
+    });
+
+    actions.append(plusBtn, minusBtn, delBtn);
+    qtyRow.append(qtyWrap, actions);
+    body.append(name, bc, qtyRow);
+    card.append(imgDiv, body);
+
+    card.addEventListener('click', () => openItemModal(item));
+    grid.appendChild(card);
   });
 }
 
-function closeSettingsModal(e) {
-  if (e.target === document.getElementById('settingsOverlay')) closeSettingsDirect();
-}
-function closeSettingsDirect() {
-  document.getElementById('settingsOverlay').classList.remove('open');
-}
+// ══════════════════════════════════════════════
+//  ITEM DETAIL MODAL
+// ══════════════════════════════════════════════
+let modalItemId = null;
+let modalQty = 1;
 
-function saveSettings() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  settings.apiKey = key;
-  settings.model = selectedModel;
-  settings.preferredStore = document.getElementById('preferredStore').value;
-  settings.lowStockThreshold = parseInt(document.getElementById('lowStockThreshold').value) || 2;
+function openItemModal(item) {
+  modalItemId = item.id;
+  modalQty = item.qty;
+  const body = document.getElementById('item-modal-body');
+  body.innerHTML = '';
 
-  localStorage.setItem('heimlager_settings', JSON.stringify(settings));
-  initSettings();
-  closeSettingsDirect();
-  showToast('Settings saved ✓', 'success');
-  renderInventory(); // re-render to apply new threshold
-  updateStats();
-}
+  document.getElementById('item-modal-title').textContent = item.name.toUpperCase().slice(0,30);
 
-function onApiKeyInput(val) {
-  updateApiStatusUI(val);
-}
+  const imgArea = document.createElement('div');
+  imgArea.className = 'product-img-area';
+  imgArea.style.height = '180px';
+  if (item.imageUrl) {
+    const img = document.createElement('img');
+    img.src = item.imageUrl;
+    img.onerror = () => { imgArea.innerHTML='<span class="product-img-placeholder">📦</span>'; };
+    imgArea.appendChild(img);
+  } else imgArea.innerHTML='<span class="product-img-placeholder">📦</span>';
 
-function updateApiStatusUI(key) {
-  const dot = document.getElementById('apiStatusDot');
-  const text = document.getElementById('apiStatusText');
-  if (!key) {
-    dot.className = 'api-status-dot';
-    text.textContent = 'No key configured';
-  } else if (key.startsWith('sk-ant-')) {
-    dot.className = 'api-status-dot valid';
-    text.textContent = 'Key format looks valid';
-  } else {
-    dot.className = 'api-status-dot invalid';
-    text.textContent = 'Invalid format — should start with sk-ant-';
+  const meta = document.createElement('div');
+  meta.className = 'product-meta';
+  meta.innerHTML = `
+    <div class="product-name-large">${item.name}</div>
+    ${item.brand?`<div class="product-brand">${item.brand}</div>`:''}
+    <div class="product-barcode-display">${item.barcode||'No barcode'}</div>
+  `;
+
+  if (item.details) {
+    const det = document.createElement('p');
+    det.className = 'product-details-text'; det.textContent = item.details;
+    body.appendChild(det);
   }
-}
 
-function toggleApiKeyVisibility() {
-  const input = document.getElementById('apiKeyInput');
-  const btn = document.getElementById('apiKeyToggle');
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙈';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁';
-  }
-}
+  const qtyEditor = document.createElement('div');
+  qtyEditor.className = 'qty-editor';
+  const qLbl = document.createElement('span');
+  qLbl.className = 'qty-editor-label'; qLbl.textContent = 'Quantity:';
+  const qControls = document.createElement('div');
+  qControls.className = 'qty-controls';
+  const qMinus = document.createElement('button');
+  qMinus.className = 'qty-btn'; qMinus.textContent = '−';
+  const qDisp = document.createElement('span');
+  qDisp.className = 'qty-display'; qDisp.textContent = item.qty;
+  const qPlus = document.createElement('button');
+  qPlus.className = 'qty-btn'; qPlus.textContent = '+';
 
-function selectModel(val, el) {
-  selectedModel = val;
-  document.querySelectorAll('.model-option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-}
+  qMinus.onclick = () => { if (modalQty>0){ modalQty--; qDisp.textContent=modalQty; } };
+  qPlus.onclick = () => { modalQty++; qDisp.textContent=modalQty; };
 
-function clearAllData() {
-  if (!confirm('DELETE ALL INVENTORY DATA?\nThis cannot be undone.')) return;
-  inventory = [];
-  localStorage.removeItem('heimlager_inventory');
-  renderInventory();
-  updateStats();
-  closeSettingsDirect();
-  showToast('All inventory cleared', 'info');
-}
+  qControls.append(qMinus, qDisp, qPlus);
+  qtyEditor.append(qLbl, qControls);
 
-function getApiKey() {
-  return settings.apiKey || '';
-}
+  body.append(imgArea, meta, qtyEditor);
 
-function getLowStockThreshold() {
-  return settings.lowStockThreshold || 2;
-}
-
-// ─── MODE SWITCH ─────────────────────────────────────────────────
-function switchMode(mode) {
-  document.getElementById('barcodeMode').style.display = mode === 'barcode' ? 'block' : 'none';
-  document.getElementById('photoMode').style.display = mode === 'photo' ? 'block' : 'none';
-  document.getElementById('tab-barcode').classList.toggle('active', mode === 'barcode');
-  document.getElementById('tab-photo').classList.toggle('active', mode === 'photo');
-  clearResult();
-}
-
-function onBarcodeInput(val) {
-  // Auto-trigger on typical barcode lengths
-  if (val.length >= 8 && val.length <= 14) {
-    clearTimeout(window._barcodeTimer);
-    window._barcodeTimer = setTimeout(() => lookupBarcode(), 600);
-  }
-}
-
-// ─── BARCODE LOOKUP ───────────────────────────────────────────────
-async function lookupBarcode() {
-  const barcode = document.getElementById('barcodeInput').value.trim();
-  if (!barcode) return showToast('Enter a barcode first', 'error');
-  await lookupProduct(barcode, null);
-}
-
-// ─── PHOTO LOOKUP ─────────────────────────────────────────────────
-let photoMediaType = 'image/jpeg';
-
-function handlePhoto(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const supported = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  photoMediaType = supported.includes(file.type) ? file.type : 'image/jpeg';
-  const reader = new FileReader();
-  reader.onload = e => {
-    photoBase64 = e.target.result.split(',')[1];
-    const preview = document.getElementById('photoPreview');
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-    document.getElementById('photoLookupBtn').disabled = false;
+  document.getElementById('item-modal-update').onclick = () => {
+    const it = inventory.find(i=>i.id===modalItemId);
+    if (it) { it.qty = modalQty; if (it.qty<=0) inventory=inventory.filter(i=>i.id!==modalItemId); }
+    saveInventory(); renderInventory(); updateStats();
+    closeItemModal(); showToast('Quantity updated', 'success');
   };
-  reader.readAsDataURL(file);
+
+  document.getElementById('item-modal-remove').onclick = () => {
+    if (confirm('Remove "'+item.name+'" from storage?')) {
+      removeItem(modalItemId); renderInventory(); updateStats();
+      closeItemModal(); showToast('Removed from storage');
+    }
+  };
+
+  document.getElementById('item-modal').classList.add('active');
 }
 
-async function lookupByPhoto() {
-  if (!photoBase64) return showToast('No photo selected', 'error');
-  await lookupProduct(null, photoBase64, photoMediaType);
+function closeItemModal() { document.getElementById('item-modal').classList.remove('active'); }
+
+// ══════════════════════════════════════════════
+//  SETTINGS MODAL
+// ══════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('api-key-input').value = settings.apiKey || '';
+  document.getElementById('store-pref').value = settings.store || 'auto';
+  document.getElementById('low-threshold').value = settings.lowThreshold || 3;
+  document.querySelectorAll('#model-cards .model-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.model === settings.model);
+  });
+  updateApiStatusDot();
+  document.getElementById('settings-modal').classList.add('active');
 }
 
-// ─── CORE LOOKUP (calls Claude AI) ────────────────────────────────
-async function lookupProduct(barcode, imageBase64, mediaType = 'image/jpeg') {
-  const apiKey = getApiKey();
-  if (!apiKey) {
-    showToast('Add your API key in Settings first ⚙', 'error');
+function closeSettings() { document.getElementById('settings-modal').classList.remove('active'); }
+
+function updateApiStatusDot() {
+  const val = document.getElementById('api-key-input').value.trim();
+  const dot = document.getElementById('api-status-dot');
+  const txt = document.getElementById('api-status-text');
+  if (!val) { dot.className='status-dot'; txt.textContent='No key entered'; }
+  else if (val.startsWith('sk-ant-')) { dot.className='status-dot valid'; txt.textContent='Valid format'; }
+  else { dot.className='status-dot invalid'; txt.textContent='Invalid format (must start with sk-ant-)'; }
+}
+
+// ══════════════════════════════════════════════
+//  FILE / PHOTO HANDLING
+// ══════════════════════════════════════════════
+let photoData = {}; // { 'barcode': {b64, mime}, 'camera': {b64, mime} }
+
+function readFileAsB64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const result = e.target.result;
+      const b64 = result.split(',')[1];
+      resolve({ b64, mime: file.type || 'image/jpeg' });
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function setupFileInput(inputId, previewAreaId, previewImgId, clearBtnId, prefix, isBarcode=false) {
+  const input = document.getElementById(inputId);
+  const area = document.getElementById(previewAreaId);
+  const clearBtn = document.getElementById(clearBtnId);
+  const previewImg = document.getElementById(previewImgId);
+
+  input.addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const {b64, mime} = await readFileAsB64(file);
+    photoData[prefix] = {b64, mime};
+
+    const url = URL.createObjectURL(file);
+    if (previewImg) {
+      previewImg.src = url;
+      area.style.display = 'block';
+    } else {
+      // camera tab: show in area
+      const existImg = area.querySelector('img');
+      const placeholder = area.querySelector('.photo-placeholder');
+      if (placeholder) placeholder.style.display='none';
+      if (existImg) { existImg.src=url; existImg.style.display='block'; }
+      if (clearBtn) clearBtn.style.display='flex';
+    }
+    input.value = '';
+  });
+
+  if (clearBtn) clearBtn.addEventListener('click', () => {
+    photoData[prefix] = null;
+    if (previewImg) { previewImg.src=''; area.style.display='none'; }
+    else {
+      const existImg = area.querySelector('img');
+      const placeholder = area.querySelector('.photo-placeholder');
+      if (existImg) { existImg.src=''; existImg.style.display='none'; }
+      if (placeholder) placeholder.style.display='block';
+      if (clearBtn) clearBtn.style.display='none';
+    }
+    if (isBarcode) {} // nothing extra
+    else { document.getElementById('camera-identify-btn').disabled = true; }
+  });
+}
+
+// ══════════════════════════════════════════════
+//  SEARCH FLOW HANDLER
+// ══════════════════════════════════════════════
+function checkApiKey() {
+  if (!settings.apiKey || !settings.apiKey.startsWith('sk-ant-')) {
+    showToast('No API key set — opening settings', 'error');
     openSettings();
-    return;
+    return false;
   }
-  showLoading(true);
-  clearResult();
-
-  const prompt = barcode
-    ? `You are a product lookup assistant. The user scanned barcode: ${barcode}
-
-Search for this product on dm.de or amazon.de. Return ONLY a JSON object (no markdown, no explanation) with these exact fields:
-{
-  "name": "Full product name",
-  "barcode": "${barcode}",
-  "brand": "Brand name",
-  "details": "2-3 sentence product description including size/weight, key features, usage",
-  "source": "dm.de or amazon.de",
-  "imageQuery": "A specific 4-6 word image search query to find the exact product photo"
+  return true;
 }
 
-Use your knowledge of European retail products. The barcode prefix gives clues: 400-440=Germany, 40=dm/Germany. Be specific and accurate.`
-    : `You are a product lookup assistant. The user uploaded a photo of a product or barcode.
+async function runSearch(prefix, getQuery, isBarcode=false, isPhoto=false, usePhoto=null) {
+  if (!checkApiKey()) return;
+  // Reset
+  document.getElementById(prefix+'-results').classList.remove('active');
+  document.getElementById(prefix+'-results').innerHTML = '';
+  const confirmBtn = document.getElementById(prefix+'-confirm-btn');
+  confirmBtn.style.display = 'none';
+  document.getElementById(prefix+'-detail').classList.remove('active');
+  document.getElementById(prefix+'-detail').innerHTML = '';
+  selectedResult[prefix] = null;
 
-Analyze the image carefully. Identify the product name, brand, any visible barcode, and details.
-Return ONLY a JSON object (no markdown, no explanation):
-{
-  "name": "Full product name",
-  "barcode": "barcode number if visible, else empty string",
-  "brand": "Brand name",
-  "details": "2-3 sentence product description including size/weight, key features, usage",
-  "source": "dm.de or amazon.de",
-  "imageQuery": "A specific 4-6 word image search query to find the exact product photo"
-}`;
-
+  setLoading(prefix, true, 'Identifying product…');
   try {
-    const messages = imageBase64
-      ? [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
-          { type: 'text', text: prompt }
-        ]}]
-      : [{ role: 'user', content: prompt }];
-
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        max_tokens: 1000,
-        messages
-      })
-    });
-
-    const data = await res.json();
-    const text = data.content.map(b => b.text || '').join('');
-    const clean = text.replace(/```json|```/g, '').trim();
-    const product = JSON.parse(clean);
-
-    // Now fetch an image for the product
-    const imgUrl = await fetchProductImage(product.imageQuery || product.name);
-    product.imageUrl = imgUrl;
-
-    currentResult = product;
-    currentMode = 'add';
-    showResult(product);
-
+    let results;
+    if (isPhoto && usePhoto) {
+      setLoading(prefix, true, 'Analyzing image with AI…');
+      results = await identifyFromPhoto(usePhoto.b64, usePhoto.mime, isBarcode);
+    } else {
+      const q = getQuery();
+      if (!q) { setLoading(prefix, false); showToast('Please enter a value'); return; }
+      setLoading(prefix, true, 'Searching product database…');
+      results = await lookupProduct(q, isBarcode);
+    }
+    setLoading(prefix, true, 'Fetching product images…');
+    setLoading(prefix, false);
+    if (!results || !results.length) { showToast('No results found'); return; }
+    await renderResults(prefix, results);
   } catch(e) {
-    showToast('Lookup failed. Try again.', 'error');
-    console.error(e);
+    setLoading(prefix, false);
+    if (e.message === 'NO_API_KEY') { showToast('No API key set', 'error'); openSettings(); }
+    else showToast('Error: '+e.message, 'error');
   }
-
-  showLoading(false);
 }
 
-// ─── IMAGE FETCH via AI ───────────────────────────────────────────
-async function fetchProductImage(query) {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': getApiKey(),
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: selectedModel,
-        max_tokens: 500,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: `Find a product image URL for: ${query}. Use web search to find a direct image URL (.jpg or .png) of this exact product on a white background. Return ONLY the image URL, nothing else.` }]
-      })
-    });
-    const data = await res.json();
-    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
-    const urlMatch = text.match(/https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)/i);
-    return urlMatch ? urlMatch[0] : null;
-  } catch(e) { return null; }
-}
-
-// ─── SHOW/HIDE ────────────────────────────────────────────────────
-function showLoading(on) {
-  document.getElementById('loadingState').style.display = on ? 'block' : 'none';
-  document.getElementById('lookupBtn') && (document.getElementById('lookupBtn').disabled = on);
-}
-
-function showResult(product) {
-  const card = document.getElementById('resultCard');
-  card.style.display = 'block';
-
-  // Image
-  const img = document.getElementById('resultImg');
-  const placeholder = document.getElementById('resultImgPlaceholder');
-  if (product.imageUrl) {
-    img.src = product.imageUrl;
-    img.style.display = 'block';
-    placeholder.style.display = 'none';
-    img.onerror = () => { img.style.display = 'none'; placeholder.style.display = 'flex'; };
-  } else {
-    img.style.display = 'none';
-    placeholder.style.display = 'flex';
-  }
-
-  document.getElementById('resultSource').textContent = product.source || 'AI LOOKUP';
-  document.getElementById('resultName').textContent = product.name || 'Unknown Product';
-  document.getElementById('resultBarcode').textContent = product.barcode || '';
-  document.getElementById('resultDetails').textContent = product.details || '';
-
-  // Check if item exists in inventory
-  const existing = inventory.find(i => i.barcode === product.barcode && product.barcode);
-  document.getElementById('deductBtn').style.display = existing ? 'block' : 'none';
-
-  document.getElementById('addModeUI').style.display = 'block';
-  document.getElementById('deductModeUI').classList.remove('visible');
-}
-
-function clearResult() {
-  currentResult = null;
-  document.getElementById('resultCard').style.display = 'none';
-  document.getElementById('barcodeInput') && (document.getElementById('barcodeInput').value = '');
-  document.getElementById('deductBtn').style.display = 'none';
-}
-
-// ─── DEDUCT MODE ──────────────────────────────────────────────────
-function switchToDeductMode() {
-  if (!currentResult) return;
-  const existing = inventory.find(i => i.barcode === currentResult.barcode);
-  if (!existing) return showToast('Item not in inventory', 'error');
-
-  currentMode = 'deduct';
-  document.getElementById('addModeUI').style.display = 'none';
-  document.getElementById('deductModeUI').classList.add('visible');
-  document.getElementById('deductInfo').innerHTML =
-    `<strong>${existing.name}</strong><br>Current stock: <strong style="color:var(--accent)">${existing.qty} units</strong>`;
-  document.getElementById('deductQtyInput').value = 1;
-  document.getElementById('deductQtyInput').max = existing.qty;
-}
-
-function changeDeductQty(delta) {
-  const input = document.getElementById('deductQtyInput');
-  input.value = Math.max(1, parseInt(input.value || 1) + delta);
-}
-
-function confirmDeduct() {
-  if (!currentResult) return;
-  const qty = parseInt(document.getElementById('deductQtyInput').value) || 1;
-  const idx = inventory.findIndex(i => i.barcode === currentResult.barcode);
-  if (idx === -1) return showToast('Item not found', 'error');
-
-  inventory[idx].qty = Math.max(0, inventory[idx].qty - qty);
-  if (inventory[idx].qty === 0) {
-    inventory.splice(idx, 1);
-    showToast('Item depleted & removed from storage', 'info');
-  } else {
-    showToast(`Deducted ${qty} unit(s). Remaining: ${inventory[idx].qty}`, 'success');
-  }
-  saveInventory();
-  renderInventory();
+// ══════════════════════════════════════════════
+//  INIT & EVENT LISTENERS
+// ══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  loadSettings();
+  loadInventory();
   updateStats();
-  clearResult();
-  cancelDeduct();
-}
-
-function cancelDeduct() {
-  currentMode = 'add';
-  document.getElementById('addModeUI').style.display = 'block';
-  document.getElementById('deductModeUI').classList.remove('visible');
-}
-
-// ─── ADD TO INVENTORY ─────────────────────────────────────────────
-function addToInventory() {
-  if (!currentResult) return;
-  const qty = parseInt(document.getElementById('qtyInput').value) || 1;
-  const existing = inventory.find(i => i.barcode === currentResult.barcode && currentResult.barcode);
-
-  if (existing) {
-    existing.qty += qty;
-    showToast(`Updated: ${existing.name} → ${existing.qty} units`, 'success');
-  } else {
-    inventory.push({
-      id: Date.now().toString(),
-      barcode: currentResult.barcode || `MANUAL-${Date.now()}`,
-      name: currentResult.name,
-      brand: currentResult.brand,
-      details: currentResult.details,
-      source: currentResult.source,
-      imageUrl: currentResult.imageUrl,
-      qty,
-      addedAt: new Date().toISOString()
-    });
-    showToast(`Added: ${currentResult.name}`, 'success');
-  }
-
-  saveInventory();
+  updateApiWarning();
   renderInventory();
-  updateStats();
-  clearResult();
-}
 
-// ─── QTY CONTROLS ─────────────────────────────────────────────────
-function changeQty(delta) {
-  const input = document.getElementById('qtyInput');
-  input.value = Math.max(1, parseInt(input.value || 1) + delta);
-}
+  // ── TABS ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-'+tab).classList.add('active');
+    });
+  });
 
-// ─── RENDER INVENTORY ─────────────────────────────────────────────
-function renderInventory(items) {
-  const grid = document.getElementById('inventoryGrid');
-  const list = items || inventory;
+  // ── BARCODE TAB ──
+  setupFileInput('barcode-camera-input','barcode-photo-area','barcode-photo-preview','barcode-photo-clear','barcode', true);
 
-  if (!list.length) {
-    grid.innerHTML = `<div class="empty-state">
-      <div class="empty-icon">📦</div>
-      <h3>LAGER LEER</h3>
-      <p>Scan a barcode or take a photo<br>to add your first item</p>
-    </div>`;
-    return;
+  document.getElementById('barcode-camera-input').addEventListener('change', async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const {b64,mime} = await readFileAsB64(file);
+    photoData['barcode'] = {b64, mime};
+  });
+
+  let barcodeTimer;
+  document.getElementById('barcode-input').addEventListener('input', e => {
+    clearTimeout(barcodeTimer);
+    const v = e.target.value.trim();
+    if (v.length >= 8) {
+      barcodeTimer = setTimeout(() => {
+        runSearch('barcode', ()=>v, true);
+      }, 800);
+    }
+  });
+
+  document.getElementById('barcode-lookup-btn').addEventListener('click', () => {
+    const photo = photoData['barcode'];
+    if (photo) {
+      runSearch('barcode', null, true, true, photo);
+    } else {
+      const v = document.getElementById('barcode-input').value.trim();
+      runSearch('barcode', ()=>v, true);
+    }
+  });
+
+  document.getElementById('barcode-confirm-btn').addEventListener('click', () => {
+    const r = selectedResult['barcode'];
+    if (r) renderDetailCard('barcode', r);
+    document.getElementById('barcode-confirm-btn').style.display='none';
+  });
+
+  // ── CAMERA TAB ──
+  const cameraArea = document.getElementById('camera-photo-area');
+  // Create img inside camera-photo-area for display
+  const camImg = document.createElement('img');
+  camImg.id = 'camera-photo-live'; camImg.src=''; camImg.style.display='none';
+  camImg.style.maxHeight = '200px'; camImg.style.objectFit='contain';
+  cameraArea.insertBefore(camImg, cameraArea.querySelector('.photo-clear-btn'));
+
+  async function handleCameraFile(file) {
+    const {b64,mime} = await readFileAsB64(file);
+    photoData['camera'] = {b64, mime};
+    const url = URL.createObjectURL(file);
+    camImg.src = url; camImg.style.display='block';
+    cameraArea.querySelector('.photo-placeholder').style.display='none';
+    document.getElementById('camera-photo-clear').style.display='flex';
+    document.getElementById('camera-identify-btn').disabled = false;
   }
 
-  grid.innerHTML = list.map(item => `
-    <div class="item-card ${item.qty <= getLowStockThreshold() ? 'low-stock' : ''}" onclick="openModal('${item.barcode}')">
-      ${item.imageUrl
-        ? `<img class="card-img" src="${item.imageUrl}" alt="${item.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-        : ''}
-      <div class="card-img-placeholder" style="${item.imageUrl ? 'display:none' : ''}">📦</div>
-      <div class="card-body">
-        <div class="card-name">${item.name}</div>
-        <div class="card-barcode">${item.barcode}</div>
-        <div class="card-footer">
-          <div>
-            <div class="card-qty">${item.qty}</div>
-            <div class="card-qty-label">UNITS</div>
-          </div>
-          <div class="card-actions">
-            <button class="card-action-btn" onclick="quickDeduct(event,'${item.barcode}')">−</button>
-            <button class="card-action-btn" onclick="quickAdd(event,'${item.barcode}')">+</button>
-            <button class="card-action-btn del" onclick="deleteItem(event,'${item.barcode}')">🗑</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `).join('');
-}
+  document.getElementById('camera-capture-input').addEventListener('change', async e => {
+    if (e.target.files[0]) await handleCameraFile(e.target.files[0]);
+    e.target.value='';
+  });
+  document.getElementById('gallery-input').addEventListener('change', async e => {
+    if (e.target.files[0]) await handleCameraFile(e.target.files[0]);
+    e.target.value='';
+  });
 
-// ─── QUICK ACTIONS ────────────────────────────────────────────────
-function quickAdd(e, barcode) {
-  e.stopPropagation();
-  const item = inventory.find(i => i.barcode === barcode);
-  if (!item) return;
-  item.qty++;
-  saveInventory(); renderInventory(); updateStats();
-  showToast(`+1 → ${item.name}`, 'success');
-}
+  document.getElementById('camera-photo-clear').addEventListener('click', () => {
+    photoData['camera'] = null;
+    camImg.src=''; camImg.style.display='none';
+    cameraArea.querySelector('.photo-placeholder').style.display='block';
+    document.getElementById('camera-photo-clear').style.display='none';
+    document.getElementById('camera-identify-btn').disabled = true;
+  });
 
-function quickDeduct(e, barcode) {
-  e.stopPropagation();
-  const item = inventory.find(i => i.barcode === barcode);
-  if (!item) return;
-  if (item.qty <= 1) {
-    if (!confirm(`Remove "${item.name}" from storage?`)) return;
-    inventory = inventory.filter(i => i.barcode !== barcode);
-    showToast('Item removed', 'info');
-  } else {
-    item.qty--;
-    showToast(`−1 → ${item.name} (${item.qty} left)`, 'info');
-  }
-  saveInventory(); renderInventory(); updateStats();
-}
+  document.getElementById('camera-identify-btn').addEventListener('click', () => {
+    const photo = photoData['camera'];
+    if (!photo) { showToast('No photo loaded'); return; }
+    runSearch('camera', null, false, true, photo);
+  });
 
-function deleteItem(e, barcode) {
-  e.stopPropagation();
-  if (!confirm('Remove this item from storage?')) return;
-  inventory = inventory.filter(i => i.barcode !== barcode);
-  saveInventory(); renderInventory(); updateStats();
-  showToast('Item removed', 'info');
-}
+  document.getElementById('camera-confirm-btn').addEventListener('click', () => {
+    const r = selectedResult['camera'];
+    if (r) renderDetailCard('camera', r);
+    document.getElementById('camera-confirm-btn').style.display='none';
+  });
 
-// ─── FILTER ───────────────────────────────────────────────────────
-function filterInventory(query) {
-  lowFilter = false;
-  document.getElementById('lowBtn').classList.remove('active');
-  const q = query.toLowerCase();
-  const filtered = q ? inventory.filter(i => i.name.toLowerCase().includes(q) || i.barcode.includes(q)) : inventory;
-  renderInventory(filtered);
-}
+  // ── SEARCH TAB ──
+  document.getElementById('search-btn').addEventListener('click', () => {
+    runSearch('search', () => document.getElementById('search-input').value.trim(), false);
+  });
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key==='Enter') document.getElementById('search-btn').click();
+  });
+  document.getElementById('search-confirm-btn').addEventListener('click', () => {
+    const r = selectedResult['search'];
+    if (r) renderDetailCard('search', r);
+    document.getElementById('search-confirm-btn').style.display='none';
+  });
 
-function filterLow() {
-  lowFilter = !lowFilter;
-  document.getElementById('lowBtn').classList.toggle('active', lowFilter);
-  document.getElementById('inventorySearch').value = '';
-  renderInventory(lowFilter ? inventory.filter(i => i.qty <= getLowStockThreshold()) : inventory);
-}
+  // ── INVENTORY FILTER ──
+  document.getElementById('inv-search').addEventListener('input', e => {
+    invFilter = e.target.value.trim();
+    renderInventory();
+  });
+  document.getElementById('low-stock-filter').addEventListener('click', function() {
+    lowFilter = !lowFilter;
+    this.classList.toggle('active', lowFilter);
+    renderInventory();
+  });
 
-// ─── MODAL ────────────────────────────────────────────────────────
-function openModal(barcode) {
-  const item = inventory.find(i => i.barcode === barcode);
-  if (!item) return;
-  modalItemBarcode = barcode;
-  document.getElementById('modalImg').src = item.imageUrl || '';
-  document.getElementById('modalImg').style.display = item.imageUrl ? 'block' : 'none';
-  document.getElementById('modalName').textContent = item.name;
-  document.getElementById('modalBarcode').textContent = item.barcode;
-  document.getElementById('modalDetails').textContent = item.details;
-  document.getElementById('modalQtyInput').value = item.qty;
-  document.getElementById('modalOverlay').classList.add('open');
-}
+  // ── SETTINGS ──
+  document.getElementById('settings-btn').addEventListener('click', openSettings);
+  document.getElementById('api-warning').addEventListener('click', openSettings);
+  document.getElementById('settings-close').addEventListener('click', closeSettings);
+  document.getElementById('settings-cancel-btn').addEventListener('click', closeSettings);
 
-function closeModal(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModalDirect();
-}
-function closeModalDirect() {
-  document.getElementById('modalOverlay').classList.remove('open');
-  modalItemBarcode = null;
-}
+  document.getElementById('api-key-input').addEventListener('input', updateApiStatusDot);
 
-function modalChangeQty(delta) {
-  const input = document.getElementById('modalQtyInput');
-  input.value = Math.max(0, parseInt(input.value || 0) + delta);
-}
+  document.getElementById('api-key-toggle').addEventListener('click', () => {
+    const inp = document.getElementById('api-key-input');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+  });
 
-function updateModalQty() {
-  if (!modalItemBarcode) return;
-  const qty = parseInt(document.getElementById('modalQtyInput').value) || 0;
-  const item = inventory.find(i => i.barcode === modalItemBarcode);
-  if (!item) return;
-  item.qty = qty;
-  saveInventory(); renderInventory(); updateStats();
-  showToast(`Updated: ${item.name} → ${qty} units`, 'success');
-  closeModalDirect();
-}
+  document.querySelectorAll('#model-cards .model-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('#model-cards .model-card').forEach(c=>c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+  });
 
-function deleteModalItem() {
-  if (!confirm('Remove from storage?')) return;
-  inventory = inventory.filter(i => i.barcode !== modalItemBarcode);
-  saveInventory(); renderInventory(); updateStats();
-  showToast('Item removed', 'info');
-  closeModalDirect();
-}
+  document.getElementById('settings-save-btn').addEventListener('click', () => {
+    const key = document.getElementById('api-key-input').value.trim();
+    const selectedModel = document.querySelector('#model-cards .model-card.selected');
+    settings.apiKey = key;
+    settings.model = selectedModel ? selectedModel.dataset.model : settings.model;
+    settings.store = document.getElementById('store-pref').value;
+    settings.lowThreshold = parseInt(document.getElementById('low-threshold').value) || 3;
+    saveSettings();
+    updateApiWarning();
+    closeSettings();
+    showToast('Settings saved', 'success');
+    renderInventory();
+    updateStats();
+  });
 
-// ─── STATS ────────────────────────────────────────────────────────
-function updateStats() {
-  document.getElementById('statItems').textContent = inventory.length;
-  document.getElementById('statUnits').textContent = inventory.reduce((s, i) => s + i.qty, 0);
-  document.getElementById('statLow').textContent = inventory.filter(i => i.qty <= getLowStockThreshold()).length;
-}
+  document.getElementById('clear-inventory-btn').addEventListener('click', () => {
+    if (confirm('Clear ALL inventory? This cannot be undone.')) {
+      inventory = [];
+      saveInventory();
+      renderInventory();
+      updateStats();
+      closeSettings();
+      showToast('Inventory cleared');
+    }
+  });
 
-// ─── PERSIST ──────────────────────────────────────────────────────
-function saveInventory() {
-  localStorage.setItem('heimlager_inventory', JSON.stringify(inventory));
-}
+  // ── ITEM MODAL ──
+  document.getElementById('item-modal-close').addEventListener('click', closeItemModal);
+  document.getElementById('item-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('item-modal')) closeItemModal();
+  });
 
-// ─── TOAST ────────────────────────────────────────────────────────
-function showToast(msg, type = 'info') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type}`;
-  t.style.display = 'block';
-  clearTimeout(window._toastTimer);
-  window._toastTimer = setTimeout(() => { t.style.display = 'none'; }, 3000);
-}
+  // Close settings on overlay click
+  document.getElementById('settings-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('settings-modal')) closeSettings();
+  });
+});
 </script>
+
 </body>
 </html>
