@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HEIMLAGER — Image Source Tester</title>
+<style>
+  body { background: #0e0f11; color: #e8e4d8; font-family: 'Courier New', monospace; padding: 20px; max-width: 900px; margin: 0 auto; }
+  h1 { color: #f0c060; font-size: 1.4rem; margin-bottom: 4px; }
+  .sub { color: #8a8070; font-size: 0.7rem; margin-bottom: 24px; }
+  .setup { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  input { background: #22262e; border: 1px solid #3a3d45; border-radius: 4px; padding: 10px 12px; color: #e8e4d8; font-family: monospace; font-size: 0.8rem; width: 100%; margin-top: 6px; }
+  button { background: #f0c060; color: #0e0f11; border: none; border-radius: 4px; padding: 12px 24px; font-weight: 700; font-family: monospace; font-size: 0.75rem; cursor: pointer; margin-top: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  button:hover { background: #ffd070; }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  label { font-size: 0.62rem; color: #8a8070; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  .products { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:600px){ .products { grid-template-columns: 1fr; } }
+
+  .product-card { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 16px; }
+  .product-name { font-size: 0.85rem; color: #f0c060; font-weight: 700; margin-bottom: 4px; }
+  .product-barcode { font-size: 0.62rem; color: #4a4840; margin-bottom: 12px; }
+
+  .result-row { margin-bottom: 14px; }
+  .source-name { font-size: 0.6rem; color: #8a8070; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .img-wrap { width: 100%; height: 140px; background: #22262e; border-radius: 6px; border: 1px solid #2a2d35; display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+  .img-wrap img { max-width: 100%; max-height: 100%; object-fit: contain; }
+  .img-status { font-size: 0.6rem; color: #4a4840; text-align: center; padding: 8px; }
+  .status-ok { background: rgba(80,200,120,0.1); border-color: rgba(80,200,120,0.3) !important; }
+  .status-fail { background: rgba(224,64,64,0.06); border-color: rgba(224,64,64,0.2) !important; }
+  .url-text { font-size: 0.52rem; color: #4a4840; word-break: break-all; margin-top: 4px; line-height: 1.4; }
+  .url-text.ok { color: #50c878; }
+  .url-text.fail { color: #e04040; }
+
+  .log { background: #16181c; border: 1px solid #2a2d35; border-radius: 8px; padding: 14px; margin-top: 20px; max-height: 300px; overflow-y: auto; }
+  .log-line { font-size: 0.65rem; color: #8a8070; margin-bottom: 3px; line-height: 1.5; }
+  .log-line.ok { color: #50c878; }
+  .log-line.err { color: #e04040; }
+  .log-line.info { color: #f0c060; }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #3a3d45; border-top-color: #f0c060; border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<h1>HEIMLAGER — Image Source Tester</h1>
+<div class="sub">Tests which image sources successfully return product photos for your two test items</div>
+
+<div class="setup">
+  <label>Anthropic API Key</label>
+  <input type="password" id="api-key" placeholder="sk-ant-api03-…">
+  <br>
+  <button id="run-btn" onclick="runTests()">▶ Run All Tests</button>
+</div>
+
+<div class="products" id="results" style="display:none">
+
+  <!-- Product 1: Briefumschläge -->
+  <div class="product-card">
+    <div class="product-name">Posthorn Briefumschläge DIN Lang</div>
+    <div class="product-barcode">Barcode: 4040134131337</div>
+
+    <div class="result-row">
+      <div class="source-name">1. UPC Item DB (barcode lookup)</div>
+      <div class="img-wrap" id="env-upc"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="env-upc-url">—</div>
+    </div>
+
+    <div class="result-row">
+      <div class="source-name">2. Open Food Facts</div>
+      <div class="img-wrap" id="env-off"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="env-off-url">—</div>
+    </div>
+
+    <div class="result-row">
+      <div class="source-name">3. Open Products Facts</div>
+      <div class="img-wrap" id="env-opf"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="env-opf-url">—</div>
+    </div>
+
+    <div class="result-row">
+      <div class="source-name">4. Claude web_search → weserv proxy</div>
+      <div class="img-wrap" id="env-claude"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="env-claude-url">—</div>
+    </div>
+  </div>
+
+  <!-- Product 2: Bottle Bottle -->
+  <div class="product-card">
+    <div class="product-name">Bottle Bottle Thermos / Travel Mug</div>
+    <div class="product-barcode">No barcode (name search only)</div>
+
+    <div class="result-row">
+      <div class="source-name">1. UPC Item DB (name search)</div>
+      <div class="img-wrap" id="bb-upc"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="bb-upc-url">—</div>
+    </div>
+
+    <div class="result-row">
+      <div class="source-name">2. DuckDuckGo Instant Answer</div>
+      <div class="img-wrap" id="bb-ddg"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="bb-ddg-url">—</div>
+    </div>
+
+    <div class="result-row">
+      <div class="source-name">3. Claude web_search → weserv proxy</div>
+      <div class="img-wrap" id="bb-claude"><span class="img-status"><span class="spinner"></span></span></div>
+      <div class="url-text" id="bb-claude-url">—</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="log" id="log" style="display:none">
+  <div class="log-line info">Ready to run tests…</div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let apiKey = '';
+
+function log(msg, type='') {
+  const el = $('log');
+  const line = document.createElement('div');
+  line.className = 'log-line ' + type;
+  line.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+function weserv(url) {
+  return 'https://images.weserv.nl/?url=' + encodeURIComponent(url) + '&w=300&output=webp&we';
+}
+
+function showImg(slotId, urlId, url, sourceName) {
+  const wrap = $(slotId);
+  const urlEl = $(urlId);
+  if (!url) {
+    wrap.classList.add('status-fail');
+    wrap.innerHTML = '<span class="img-status">✕ No URL found</span>';
+    urlEl.textContent = 'No result';
+    urlEl.className = 'url-text fail';
+    log(sourceName + ': No URL found', 'err');
+    return;
+  }
+  urlEl.textContent = url;
+  const img = new Image();
+  img.onload = () => {
+    wrap.classList.add('status-ok');
+    wrap.innerHTML = '';
+    img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain';
+    wrap.appendChild(img);
+    urlEl.className = 'url-text ok';
+    log(sourceName + ': ✓ Image loaded OK', 'ok');
+  };
+  img.onerror = () => {
+    wrap.classList.add('status-fail');
+    wrap.innerHTML = '<span class="img-status">✕ Image failed to load (CORS or 404)</span>';
+    urlEl.className = 'url-text fail';
+    log(sourceName + ': ✗ Image load failed — ' + url, 'err');
+  };
+  img.src = url;
+}
+
+async function callClaude(prompt) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 512,
+      messages: [{ role: 'user', content: prompt }],
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+    })
+  });
+  const d = await resp.json();
+  return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('');
+}
+
+async function testUpcItemDb(barcode, slotId, urlId, label) {
+  try {
+    log(label + ': Querying UPC Item DB…');
+    const url = barcode
+      ? `https://api.upcitemdb.com/prod/trial/lookup?upc=${barcode}`
+      : `https://api.upcitemdb.com/prod/trial/search?s=${encodeURIComponent('bottle bottle thermos')}&type=product`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const items = d.items || [];
+    const images = items.flatMap(i => i.images || []);
+    const img = images[0] || '';
+    log(label + ': Got ' + items.length + ' items, ' + images.length + ' images');
+    showImg(slotId, urlId, img ? weserv(img) : '', label);
+  } catch(e) {
+    showImg(slotId, urlId, '', label);
+    log(label + ': Error — ' + e.message, 'err');
+  }
+}
+
+async function testOpenFoodFacts(barcode, slotId, urlId, label) {
+  try {
+    log(label + ': Querying Open Food Facts…');
+    const r = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+    const d = await r.json();
+    const img = d?.product?.image_front_url || d?.product?.image_url || '';
+    log(label + ': Status=' + d.status + ', image=' + (img ? 'found' : 'none'));
+    showImg(slotId, urlId, img ? weserv(img) : '', label);
+  } catch(e) {
+    showImg(slotId, urlId, '', label);
+    log(label + ': Error — ' + e.message, 'err');
+  }
+}
+
+async function testOpenProductsFacts(barcode, slotId, urlId, label) {
+  try {
+    log(label + ': Querying Open Products Facts…');
+    const r = await fetch(`https://world.openproductsfacts.org/api/v0/product/${barcode}.json`);
+    const d = await r.json();
+    const img = d?.product?.image_front_url || d?.product?.image_url || '';
+    log(label + ': Status=' + d.status + ', image=' + (img ? 'found' : 'none'));
+    showImg(slotId, urlId, img ? weserv(img) : '', label);
+  } catch(e) {
+    showImg(slotId, urlId, '', label);
+    log(label + ': Error — ' + e.message, 'err');
+  }
+}
+
+async function testDuckDuckGo(query, slotId, urlId, label) {
+  try {
+    log(label + ': Querying DuckDuckGo Instant Answer…');
+    const r = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1`);
+    const d = await r.json();
+    const img = d?.Image || '';
+    log(label + ': Image=' + (img ? img : 'none'));
+    showImg(slotId, urlId, img ? weserv(img) : '', label);
+  } catch(e) {
+    showImg(slotId, urlId, '', label);
+    log(label + ': Error — ' + e.message, 'err');
+  }
+}
+
+async function testClaude(query, slotId, urlId, label) {
+  try {
+    log(label + ': Asking Claude to find image URL…');
+    const txt = await callClaude(
+      `Find a direct product image URL for: "${query}".\n` +
+      `Search the web. Return ONLY one image URL ending in .jpg, .jpeg, .png, or .webp.\n` +
+      `Prefer open product databases, manufacturer websites, or Wikipedia — NOT amazon.de or dm.de (CORS blocked).\n` +
+      `Just the bare URL, nothing else. If nothing found, reply NONE.`
+    );
+    const m = txt.trim().match(/https?:\/\/[^\s"'\n<>()[\]]+\.(?:jpg|jpeg|png|webp)/i);
+    const url = m ? m[0] : '';
+    log(label + ': Claude returned: ' + (url || 'NONE'));
+    showImg(slotId, urlId, url ? weserv(url) : '', label);
+  } catch(e) {
+    showImg(slotId, urlId, '', label);
+    log(label + ': Error — ' + e.message, 'err');
+  }
+}
+
+async function runTests() {
+  apiKey = $('api-key').value.trim();
+  if (!apiKey || !apiKey.startsWith('sk-ant-')) {
+    alert('Please enter a valid API key starting with sk-ant-');
+    return;
+  }
+  $('run-btn').disabled = true;
+  $('results').style.display = 'grid';
+  $('log').style.display = 'block';
+  $('log').innerHTML = '';
+  log('Starting tests…', 'info');
+
+  // Run all tests in parallel
+  await Promise.all([
+    // Briefumschläge (barcode: 4040134131337)
+    testUpcItemDb('4040134131337', 'env-upc', 'env-upc-url', 'Briefumschläge / UPC Item DB'),
+    testOpenFoodFacts('4040134131337', 'env-off', 'env-off-url', 'Briefumschläge / Open Food Facts'),
+    testOpenProductsFacts('4040134131337', 'env-opf', 'env-opf-url', 'Briefumschläge / Open Products Facts'),
+    testClaude('Posthorn Briefumschläge DIN lang 110x220mm 4040134131337', 'env-claude', 'env-claude-url', 'Briefumschläge / Claude'),
+
+    // Bottle Bottle (no barcode)
+    testUpcItemDb(null, 'bb-upc', 'bb-upc-url', 'Bottle Bottle / UPC Item DB'),
+    testDuckDuckGo('bottle bottle thermos travel mug white', 'bb-ddg', 'bb-ddg-url', 'Bottle Bottle / DuckDuckGo'),
+    testClaude('Bottle Bottle thermos travel mug white stainless steel', 'bb-claude', 'bb-claude-url', 'Bottle Bottle / Claude'),
+  ]);
+
+  log('All tests complete.', 'info');
+  $('run-btn').disabled = false;
+  $('run-btn').textContent = '↺ Run Again';
+}
+</script>
+</body>
+</html>
